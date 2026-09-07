@@ -1,0 +1,45 @@
+{
+  "type": "skydeityslash:enchanting_apparatus",
+  "keepNbtOfReagent": false,
+  "reagent": [
+    {
+      "type": "slashblade:blade",
+      "item": "slashblade:slashblade",
+      "request": {
+        "refine": 52,
+        "proud_soul": 5200,
+        "kill": 5200
+      }
+    }
+  ],
+  "pedestalItems": [
+    {
+      "item": "skydeityslash:lihenyan_ignot"
+    },
+    {
+      "item": "minecraft:nether_star"
+    },
+    {
+      "item": "skydeityslash:lihenyan_ignot"
+    },
+    {
+      "item": "slashblade:proudsoul_trapezohedron"
+    },
+    {
+      "item": "skydeityslash:lihenyan_ignot"
+    },
+    {
+      "item": "minecraft:dragon_egg"
+    },
+    {
+      "item": "skydeityslash:lihenyan_ignot"
+    },
+    {
+      "item": "slashblade:proudsoul_trapezohedron"
+    }
+  ],
+  "output": {
+    "item": "slashblade:slashblade",
+    "blade": "skydeityslash:sakurafox"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "fuxinzhe_dangzhu": {
+    "subtitle": "skydeityslash.subtitle.fuxinzhe_dangzhu",
+    "sounds": [
+      {
+        "name": "skydeityslash:fuxinzhe_dangzhu",
+        "stream": true
+      }
+    ]
+  },
+  "yanguo_wuhenji": {
+    "subtitle": "skydeityslash.subtitle.yanguo_wuhenji",
+    "sounds": [
+      {
+        "name": "skydeityslash:yanguo_wuhenji",
+        "stream": true
+      }
+    ]
+  },
+  "disheng_shenghua": {
+    "subtitle": "skydeityslash.subtitle.disheng_shenghua",
+    "sounds": [
+      {
+        "name": "skydeityslash:disheng_shenghua",
+        "stream": true
+      }
+    ]
+  },
+  "huangui_heqing": {
+    "subtitle": "skydeityslash.subtitle.huangui_heqing",
+    "sounds": [
+      {
+        "name": "skydeityslash:huangui_heqing",
+        "stream": true
+      }
+    ]
+  },
+  "diyan_huahun": {
+    "subtitle": "skydeityslash.subtitle.diyan_huahun",
+    "sounds": [
+      {
+        "name": "skydeityslash:diyan_huahun",
+        "stream": true
+      }
+    ]
+  }
+}

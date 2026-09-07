@@ -1,0 +1,38 @@
+{
+  "enchantments": [
+    {
+      "id": "minecraft:sharpness",
+      "lvl": 10
+    },
+    {
+      "id": "minecraft:looting",
+      "lvl": 10
+    },
+    {
+      "id": "minecraft:power",
+      "lvl": 10
+    }
+  ],
+  "item": "slashblade:slashblade",
+  "name": "skydeityslash:odette",
+  "properties": {
+    "attack_base": 91.0,
+    "max_damage": 100,
+    "slash_art": "skydeityslash:xuanfeng_huixue",
+    "special_effects": [
+      "skydeityslash:jiangwan_snow",
+      "skydeityslash:phantom_dance",
+      "skydeityslash:xuanfeng_huixue",
+      "skydeityslash:skyward_visage"
+    ],
+    "sword_type": [
+      "bewitched"
+    ]
+  },
+  "render": {
+    "carry_type": "default",
+    "model": "skydeityslash:model/named/odette.obj",
+    "texture": "skydeityslash:model/named/odette.png",
+    "summon_sword_color": 13231871
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "enchantments": [
+    {
+      "id": "minecraft:power",
+      "lvl": 10
+    }
+  ],
+  "item": "slashblade:slashblade",
+  "name": "skydeityslash:sakurafox",
+  "properties": {
+    "attack_base": 91.0,
+    "max_damage": 100,
+    "slash_art": "skydeityslash:li_ren_lei",
+    "special_effects": [
+      "skydeityslash:jiangwan_snow",
+      "skydeityslash:seal_blossom",
+      "skydeityslash:seal_lotus",
+      "skydeityslash:silver_pin_moth",
+      "skydeityslash:silver_pin_slayer",
+      "skydeityslash:rain_butterfly",
+      "skydeityslash:flute_soul",
+      "skydeityslash:flute_shadow",
+      "skydeityslash:gongsun_li"
+    ],
+    "sword_type": [
+      "bewitched"
+    ]
+  },
+  "render": {
+    "carry_type": "default",
+    "model": "skydeityslash:model/named/sakurafox.obj",
+    "texture": "skydeityslash:model/named/sakurafox.png",
+    "summon_sword_color": 16745524
+  }
+}

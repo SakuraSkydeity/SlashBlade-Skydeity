@@ -1,0 +1,23 @@
+# Gradle / build outputs
+build/
+.gradle/
+run/
+mcmodsrepo/
+out/
+bin/
+*.log
+*_log*.txt
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# Scratch / generated artifacts
+*.class
+*_gen_*.ps1
+scripts/
+deps/jarextract/

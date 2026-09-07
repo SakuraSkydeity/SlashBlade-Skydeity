@@ -1,0 +1,10 @@
+{
+  "message_id": "skydeityslash.true_damage",
+  "scaling": "never",
+  "exhaustion": 0.0,
+  "bypasses_armor": true,
+  "bypasses_invulnerability": true,
+  "bypasses_magic": true,
+  "bypasses_enchantments": true,
+  "is_transference": true
+}

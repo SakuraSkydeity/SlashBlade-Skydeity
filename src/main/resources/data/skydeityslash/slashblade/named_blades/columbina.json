@@ -1,0 +1,38 @@
+{
+  "enchantments": [
+    {
+      "id": "minecraft:sharpness",
+      "lvl": 10
+    },
+    {
+      "id": "minecraft:looting",
+      "lvl": 10
+    },
+    {
+      "id": "minecraft:power",
+      "lvl": 10
+    }
+  ],
+  "item": "slashblade:slashblade",
+  "name": "skydeityslash:columbina",
+  "properties": {
+    "attack_base": 91.0,
+    "max_damage": 100,
+    "slash_art": "skydeityslash:columbina",
+    "special_effects": [
+      "skydeityslash:jiangwan_snow",
+      "skydeityslash:new_moon_law",
+      "skydeityslash:rouguang_ninglu",
+      "skydeityslash:hualan_yunyi"
+    ],
+    "sword_type": [
+      "bewitched"
+    ]
+  },
+  "render": {
+    "carry_type": "default",
+    "model": "skydeityslash:model/named/columbina.obj",
+    "texture": "skydeityslash:model/named/columbina.png",
+    "summon_sword_color": 16744350
+  }
+}

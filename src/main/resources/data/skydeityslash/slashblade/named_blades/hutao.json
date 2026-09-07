@@ -1,0 +1,37 @@
+{
+  "name": "skydeityslash:hutao",
+  "properties": {
+    "attack_base": 91.0,
+    "max_damage": 100,
+    "slash_art": "skydeityslash:liyue_butterfly",
+    "special_effects": [
+      "skydeityslash:jiangwan_snow",
+      "skydeityslash:butterfly_blaze",
+      "skydeityslash:plum_blossom",
+      "skydeityslash:butterfly_dance"
+    ],
+    "sword_type": [
+      "bewitched"
+    ]
+  },
+  "enchantments": [
+    {
+      "id": "minecraft:sharpness",
+      "lvl": 10
+    },
+    {
+      "id": "minecraft:looting",
+      "lvl": 10
+    },
+    {
+      "id": "minecraft:power",
+      "lvl": 10
+    }
+  ],
+  "render": {
+    "carry_type": "default",
+    "model": "skydeityslash:model/named/hutao.obj",
+    "texture": "skydeityslash:model/named/hutao.png",
+    "summon_sword_color": 16744350
+  }
+}

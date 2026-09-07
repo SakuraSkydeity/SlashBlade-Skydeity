@@ -1,0 +1,37 @@
+{
+  "name": "skydeityslash:slash_furina",
+  "properties": {
+    "attack_base": 91.0,
+    "max_damage": 100,
+    "slash_art": "skydeityslash:fontaine_carnival",
+    "special_effects": [
+      "skydeityslash:jiangwan_snow",
+      "skydeityslash:all_waters",
+      "skydeityslash:sinner_dance",
+      "skydeityslash:flow_rush"
+    ],
+    "sword_type": [
+      "bewitched"
+    ]
+  },
+  "enchantments": [
+    {
+      "id": "minecraft:sharpness",
+      "lvl": 10
+    },
+    {
+      "id": "minecraft:looting",
+      "lvl": 10
+    },
+    {
+      "id": "minecraft:power",
+      "lvl": 10
+    }
+  ],
+  "render": {
+    "carry_type": "default",
+    "model": "skydeityslash:model/named/furina.obj",
+    "texture": "skydeityslash:model/named/furina.png",
+    "summon_sword_color": 4033535
+  }
+}

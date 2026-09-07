@@ -1,0 +1,21 @@
+{
+  "name": "skydeityslash:test1",
+  "properties": {
+    "attack_base": 1.0,
+    "max_damage": 100,
+    "sword_type": [
+      "none"
+    ]
+  },
+  "enchantments": [
+    {
+      "id": "minecraft:power",
+      "lvl": 1
+    }
+  ],
+  "render": {
+    "carry_type": "default",
+    "model": "skydeityslash:model/named/z1.obj",
+    "texture": "skydeityslash:model/named/z1.png"
+  }
+}

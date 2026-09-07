@@ -1,0 +1,58 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "body": "skydeityslash:block/frost_stone",
+    "top": "skydeityslash:block/frost_stone_top",
+    "particle": "skydeityslash:block/frost_stone"
+  },
+  "elements": [
+    {
+      "from": [4, 0, 4],
+      "to": [12, 1, 12],
+      "faces": {
+        "north": {"texture": "#body"},
+        "south": {"texture": "#body"},
+        "east": {"texture": "#body"},
+        "west": {"texture": "#body"},
+        "up": {"texture": "#top"},
+        "down": {"texture": "#body"}
+      }
+    },
+    {
+      "from": [5, 1, 5],
+      "to": [11, 2, 11],
+      "faces": {
+        "north": {"texture": "#body"},
+        "south": {"texture": "#body"},
+        "east": {"texture": "#body"},
+        "west": {"texture": "#body"},
+        "up": {"texture": "#top"},
+        "down": {"texture": "#body"}
+      }
+    },
+    {
+      "from": [6, 2, 6],
+      "to": [10, 11, 10],
+      "faces": {
+        "north": {"texture": "#body"},
+        "south": {"texture": "#body"},
+        "east": {"texture": "#body"},
+        "west": {"texture": "#body"},
+        "up": {"texture": "#top"},
+        "down": {"texture": "#body"}
+      }
+    },
+    {
+      "from": [5, 11, 5],
+      "to": [11, 12, 11],
+      "faces": {
+        "north": {"texture": "#body"},
+        "south": {"texture": "#body"},
+        "east": {"texture": "#body"},
+        "west": {"texture": "#body"},
+        "up": {"texture": "#top"},
+        "down": {"texture": "#body"}
+      }
+    }
+  ]
+}

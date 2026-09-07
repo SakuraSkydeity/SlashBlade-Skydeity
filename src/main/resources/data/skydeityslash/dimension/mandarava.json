@@ -1,0 +1,13 @@
+{
+  "type": "skydeityslash:mandarava",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "minecraft:plains",
+      "layers": [],
+      "structures": {
+        "structures": {}
+      }
+    }
+  }
+}

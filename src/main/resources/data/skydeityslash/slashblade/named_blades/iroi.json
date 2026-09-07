@@ -1,0 +1,37 @@
+{
+  "name": "skydeityslash:iroi",
+  "properties": {
+    "attack_base": 91.0,
+    "max_damage": 100,
+    "slash_art": "skydeityslash:iroi_xiangyang",
+    "special_effects": [
+      "skydeityslash:jiangwan_snow",
+      "skydeityslash:iroi_se30",
+      "skydeityslash:iroi_se40",
+      "skydeityslash:iroi_se50"
+    ],
+    "sword_type": [
+      "bewitched"
+    ]
+  },
+  "enchantments": [
+    {
+      "id": "minecraft:sharpness",
+      "lvl": 10
+    },
+    {
+      "id": "minecraft:looting",
+      "lvl": 10
+    },
+    {
+      "id": "minecraft:power",
+      "lvl": 10
+    }
+  ],
+  "render": {
+    "carry_type": "default",
+    "model": "skydeityslash:model/named/iroi.obj",
+    "texture": "skydeityslash:model/named/iroi.png",
+    "summon_sword_color": 16733695
+  }
+}
