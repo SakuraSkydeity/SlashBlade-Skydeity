@@ -25,8 +25,8 @@ import java.util.List;
  */
 public class IroiXiangyangArt {
 
-    /** 幻影剑颜色：iroi 主题粉紫（与 SE40/SE50 剑气一致） */
-    public static final int PHANTOM_COLOR = 0xFF55FF;
+    /** 幻影剑颜色：iroi 主题粉紫（比原 0xFF55FF 更暗，避免太亮刺眼） */
+    public static final int PHANTOM_COLOR = 0x9B2E8C;
 
     public static void doIroiXiangyang(LivingEntity user) {
         if (!(user instanceof ServerPlayer player)) return;
@@ -48,46 +48,49 @@ public class IroiXiangyangArt {
             SkydeitySlash.GameEvents.applyTrueDamage(target, player, target.getMaxHealth() * 0.5f);
         }
 
-        // 2. 释放点一团聚集白云 + 沿身体后方细细的拖尾
-        spawnWhiteCluster(serverLevel, origin, dir);
+        // 2. 白色旋转光线：一条白线绕圆心旋转，同时整体向前推进
+        spawnWhiteSpiral(serverLevel, origin, dir);
 
         // 3. 从目标上方召唤 16 把库默认色幻影剑，放慢速度徐徐扎落（浓一点、慢一点，便于看清）
-        spawnPhantomSwords(player, level, origin);
+        spawnPhantomSwords(player, serverLevel, origin);
 
         // 小幅突进
         player.setDeltaMovement(player.getDeltaMovement().add(dir.x * 0.5, 0.1, dir.z * 0.5));
     }
 
-    /** 一团粗大的白色聚团往前飞，身后拖着细细的拖尾（慢速推进 8 格，粒子浓可直视） */
-    private static void spawnWhiteCluster(ServerLevel serverLevel, Vec3 origin, Vec3 dir) {
+    /** 白色粒子绕一个圆心做圆周运动，同时整体向前移动（圆圈自旋前进，已调慢便于看清） */
+    private static void spawnWhiteSpiral(ServerLevel serverLevel, Vec3 origin, Vec3 dir) {
         Vector3f white = new Vector3f(1.0f, 1.0f, 1.0f);
-        int steps = 20;               // 慢速：每 2 tick 前进一步，总推进 8 格
+        Vec3 up = new Vec3(0, 1, 0);
+        Vec3 cross = up.cross(dir);
+        Vec3 p1 = (cross.lengthSqr() < 0.0001 ? new Vec3(1, 0, 0) : cross).normalize();
+        Vec3 p2 = p1.cross(dir).normalize();
+        int steps = 30;                       // 每 6 tick 一步，慢速推进约 6.6 格（全程约 9 秒，可看清）
+        double radius = 1.2;                  // 绕心圆周半径
+        int ringPts = 20;                     // 每个圆环的粒子数，密一点更清晰
+        double rotPerStep = Math.PI * 2.0 / 15.0; // 每步转 1/15 圈，全程约 2 圈，旋转明显且缓慢
+        double fwd = 0.22;                    // 每步保持圆周运动圆心前进 0.22 格
         for (int i = 0; i < steps; i++) {
             final int idx = i;
             serverLevel.getServer().tell(new TickTask(
-                    serverLevel.getServer().getTickCount() + idx * 2,
+                    serverLevel.getServer().getTickCount() + idx * 6,
                     () -> {
-                        Vec3 pos = origin.add(dir.scale(idx * 0.4));
-                        // 粗大聚团：一小团浓密的白粒（尺寸较大、紧密聚集，肉眼清晰可见）
-                        for (int k = 0; k < 12; k++) {
-                            double ox = pos.x + (serverLevel.random.nextDouble() - 0.5) * 0.55;
-                            double oy = pos.y + (serverLevel.random.nextDouble() - 0.5) * 0.4;
-                            double oz = pos.z + (serverLevel.random.nextDouble() - 0.5) * 0.55;
-                            serverLevel.sendParticles(new DustParticleOptions(white, 0.35f),
-                                    ox, oy, oz, 1, 0, 0, 0, 0.02);
-                        }
-                        // 身后细拖尾：两粒更细小的白粒
-                        for (int t = 1; t <= 2; t++) {
-                            Vec3 back = pos.subtract(dir.scale(0.35 * t));
-                            serverLevel.sendParticles(new DustParticleOptions(white, 0.10f),
-                                    back.x, back.y, back.z, 1, 0, 0, 0, 0.004);
+                        Vec3 center = origin.add(dir.scale(idx * fwd));
+                        double base = idx * rotPerStep;   // 整环随步进自旋 = 圆周运动
+                        for (int k = 0; k < ringPts; k++) {
+                            double th = base + k * (Math.PI * 2.0 / ringPts);
+                            Vec3 p = center
+                                    .add(p1.scale(Math.cos(th) * radius))
+                                    .add(p2.scale(Math.sin(th) * radius));
+                            serverLevel.sendParticles(new DustParticleOptions(white, 0.22f),
+                                    p.x, p.y, p.z, 1, 0, 0, 0, 0.01);
                         }
                     }));
         }
     }
 
-    /** 从目标/准星上方召唤 16 把幻影剑扎落（与胡桃幻影剑相同的模组基础召唤剑，保证可见；每把 52 伤） */
-    private static void spawnPhantomSwords(ServerPlayer player, Level level, Vec3 origin) {
+    /** 从目标/准星上方以圆周一圈生成 16 把幻影剑，各自悬浮等待后再依次扎落（每把间隔 8 tick，每把 52 伤） */
+    private static void spawnPhantomSwords(ServerPlayer player, ServerLevel level, Vec3 origin) {
         ISlashBladeState state = player.getMainHandItem().getCapability(CapabilitySlashBlade.BLADESTATE, null).orElse(null);
         Entity tgt = state != null ? state.getTargetEntity(level) : null;
         final Vec3 aim;
@@ -105,6 +108,7 @@ public class IroiXiangyangArt {
             sword.setColor(PHANTOM_COLOR);
             sword.setRoll(0.0F);
             sword.setDamage(52.0);
+            sword.setDelay(i * 8);     // 依次落下：每把悬浮等待 i*8 tick 再发射
             Vec3 aimDir = aim.subtract(start);
             sword.shoot(aimDir.x, aimDir.y, aimDir.z, 1.2F, 0.0F);
             level.addFreshEntity(sword);

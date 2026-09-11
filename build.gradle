@@ -9,7 +9,7 @@ version = mod_version
 group = mod_group_id
 
 base {
-    archivesName = mod_id
+    archivesName = 'SlashBlade Skydeity'
 }
 
 // Mojang ships Java 17 to end users in 1.18+, your mod should target Java 17.
@@ -103,6 +103,9 @@ def replaceProperties = [
 processResources {
     filteringCharset = 'UTF-8'
     inputs.properties replaceProperties
+    // 放在原位用作备份的贴图（*.bak / *.orig）不参与打包，避免 jar 体积被备份文件撑大
+    exclude '**/*.bak'
+    exclude '**/*.orig'
     filesMatching(['META-INF/mods.toml']) {
         expand replaceProperties + [project: project]
     }

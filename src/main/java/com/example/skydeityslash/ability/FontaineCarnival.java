@@ -62,14 +62,15 @@ public class FontaineCarnival {
         Vec3 right = look.cross(new Vec3(0, 1, 0));
         right = right.lengthSqr() < 0.001 ? new Vec3(1, 0, 0) : right.normalize();
         Vec3 up = new Vec3(0, 1, 0);
-        // 前方扇形：以 look 为轴，向左右/上下/斜向展开
-        Vec3 lookLeft = look.subtract(right.scale(0.5)).normalize();
-        Vec3 lookRight = look.add(right.scale(0.5)).normalize();
-        Vec3 lookUp = look.add(up.scale(0.5)).normalize();
-        Vec3 lookDown = look.subtract(up.scale(0.5)).normalize();
-        Vec3 lookUpLeft = look.subtract(right.scale(0.5)).add(up.scale(0.5)).normalize();
-        Vec3 lookUpRight = look.add(right.scale(0.5)).add(up.scale(0.5)).normalize();
-        Vec3 lookDownRight = look.add(right.scale(0.5)).subtract(up.scale(0.5)).normalize();
+        // 前方扇形收窄：以 look 为轴小幅展开（偏离收窄，避免飞出去散太开）
+        double spread = 0.15;
+        Vec3 lookLeft = look.subtract(right.scale(spread)).normalize();
+        Vec3 lookRight = look.add(right.scale(spread)).normalize();
+        Vec3 lookUp = look.add(up.scale(spread)).normalize();
+        Vec3 lookDown = look.subtract(up.scale(spread)).normalize();
+        Vec3 lookUpLeft = look.subtract(right.scale(spread)).add(up.scale(spread)).normalize();
+        Vec3 lookUpRight = look.add(right.scale(spread)).add(up.scale(spread)).normalize();
+        Vec3 lookDownRight = look.add(right.scale(spread)).subtract(up.scale(spread)).normalize();
         // 横/竖/左右斜交替排列
         Vec3[] dirs = {
                 look, lookUp, lookUpLeft, lookLeft,
@@ -86,7 +87,7 @@ public class FontaineCarnival {
                 wave.setPos(spawn.x, spawn.y, spawn.z);
                 wave.setDamage(WAVE_DAMAGE);
                 wave.setSpeed(1.4F);
-                wave.setColor(LIGHT_BLUE);
+                wave.setColor(0x2E86FF); // 剑气改为蓝色
                 wave.setOwner(player);
                 wave.setRotationRoll(rolls[idx % 8]);
                 wave.setIsCritical(false);

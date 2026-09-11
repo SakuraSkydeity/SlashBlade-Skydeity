@@ -209,6 +209,13 @@ public class SkydeitySlash {
         private static final Map<UUID, Integer> NEWMOON_RING_STEP = new HashMap<>();
         /** 诺德卡莱 SA 剑气追踪：剑气实体ID -> 锁定目标实体ID（命中/消散/目标死亡即自删） */
         private static final Map<Integer, Integer> COLUMBINA_HOMING = new HashMap<>();
+        /** 诺德卡莱随行环：10 格半径环随玩家移动生效截止时间（gameTime），重复使用 SA 刷新到当前 + 5 秒 */
+        private static final Map<UUID, Long> COLUMBINA_RING_DEADLINE = new HashMap<>();
+
+        /** sakurafox：右键挥砍时刀身墨色（每次挥砍随机换一色、与上次不同），未挥砍前默认墨绿 0x145F31 */
+        private static final Map<UUID, Integer> SAKURA_SWING_COLOR = new HashMap<>();
+        /** sakurafox：挥砍可选刀身墨色 —— 墨绿 / 暗绿 / 深蓝 */
+        private static final int[] SAKURA_SWING_COLORS = {0x145F31, 0x0E3B22, 0x123B6B};
 
         /** 妄想彼端的森林萤火：SPRINT 激活后的生效截止时间（gameTime），激活期间每 20 刀对锁定目标结算一次 52 真伤并加紫弧 */
         private static final Map<UUID, Long> FOREST_FIREFLY_ACTIVE = new HashMap<>();
@@ -281,6 +288,11 @@ public class SkydeitySlash {
         /** 诺德卡莱 SA：把 frostNova 安排到玩家 tick + NOVA_DELAY 后触发（保证「两个粒子一个放完再放另一个」） */
         public static void scheduleColumbinaNova(ServerPlayer player) {
             COLUMBINA_NOVA_TICK.put(player.getUUID(), player.tickCount + 22);
+        }
+
+        /** 诺德卡莱随行环：激活即把时长刷新为当前 + 5 秒（最长 5 秒），环随玩家移动并在期间施加增益/减益 */
+        public static void activateColumbinaRing(ServerPlayer player) {
+            COLUMBINA_RING_DEADLINE.put(player.getUUID(), player.level().getGameTime() + 100);
         }
 
         /** 彼岸蝶舞：给目标叠加一层血梅香（等级 +1、持续刷新 5 秒），等级为 5 的倍数时爆炸扣除 50% 最大生命 */
@@ -629,9 +641,9 @@ public class SkydeitySlash {
             if (st.getModel().map(m -> "model/named/linnea.obj".equals(m.getPath())).orElse(false)) {
                 return 0x8B6508;
             }
-            // iroi 刀：幻影剑统一为粉紫 #FF55FF（与 iroi SE 主题一致）
+            // iroi 刀：幻影剑统一为粉紫 #9B2E8C（较暗，避免太亮）
             if (st.getModel().map(m -> "model/named/iroi.obj".equals(m.getPath())).orElse(false)) {
-                return 0xFF55FF;
+                return 0x9B2E8C;
             }
             ResourceLocation art = st.getSlashArtsKey();
             if (art == null || !art.getNamespace().equals(SkydeitySlash.MODID)) return -1;
@@ -639,16 +651,17 @@ public class SkydeitySlash {
             if ("fontaine_carnival".equals(p)) return 0x3D8BFF; // FURINA 蓝
             if ("liyue_butterfly".equals(p)) return 0xD62828;  // hutao 红色（原为 0xFF7F9E 桃红偏亮）
             if ("xuanfeng_huixue".equals(p)) return 0xC9E6FF;  // ODETTE 蓝白
+            if ("columbina".equals(p)) return 0x2E62A6;        // COLUM 深海蓝（比天蓝更暗、不刺眼、无渐变）
             return -1;
         }
 
-        /** 幻影剑 5 色循环（暗墨系，柔和不刺眼）：深墨绿→墨绿→暗绿→青绿→蓝绿，每发换一色 */
+        /** 幻影剑 5 色循环（暗墨系，柔和不刺眼——已整体压暗适配 sakurafox）：深墨绿→墨绿→暗绿→青绿→蓝绿，每发换一色 */
         private static final int[] PHANTOM_COLORS = {
-                0x0A3B20, // 深墨绿
-                0x155E33, // 墨绿
-                0x27884A, // 暗绿
-                0x2E8A66, // 青绿
-                0x2F7F86  // 蓝绿
+                0x072A16, // 深墨绿（更暗）
+                0x10391F, // 墨绿（更暗）
+                0x1E552B, // 暗绿（更暗）
+                0x21604A, // 青绿（更暗）
+                0x23555B  // 蓝绿（更暗）
         };
 
         private static int phantomSwordColor(int step) {
@@ -824,6 +837,22 @@ public class SkydeitySlash {
             try {
                 ISlashBladeState state = event.getSlashBladeState();
                 if (state == null) return;
+
+                // sakurafox：每次挥砍（右键攻击动画）随机换一种刀身墨色（墨绿/暗绿/深蓝），且与上一次不同
+                if (state.getModel().map(m -> "model/named/sakurafox.obj".equals(m.getPath())).orElse(false)
+                        && event.getUser() instanceof Player sakuraUser) {
+                    UUID suid = sakuraUser.getUUID();
+                    int prev = SAKURA_SWING_COLOR.getOrDefault(suid, Integer.MIN_VALUE);
+                    List<Integer> pool = new ArrayList<>();
+                    for (int c : SAKURA_SWING_COLORS) {
+                        if (c != prev) pool.add(c);
+                    }
+                    int pick = pool.isEmpty() ? SAKURA_SWING_COLORS[0]
+                            : pool.get(sakuraUser.getRandom().nextInt(pool.size()));
+                    SAKURA_SWING_COLOR.put(suid, pick);
+                    state.setEffectColor(new Color(pick));
+                }
+
                 if (!state.hasSpecialEffect(ModSpecialEffects.HUALAN_YUNYI_EFFECT.getId())) return;
                 LivingEntity user = event.getUser();
                 if (user == null || user.level().isClientSide) return;
@@ -1260,6 +1289,11 @@ public class SkydeitySlash {
                 LUMI_HELD_TICKS.remove(player.getUUID());
                 LUMI_ATTACK_BONUS.remove(player.getUUID());
             }
+
+            // sakurafox：刀身墨色置于各 SE 刀身色之后，保证始终以「每次挥砍随机色」为准（墨绿/暗绿/深蓝），未挥砍前默认墨绿 0x145F31
+            if (state.getModel().map(m -> "model/named/sakurafox.obj".equals(m.getPath())).orElse(false)) {
+                state.setEffectColor(new Color(SAKURA_SWING_COLOR.getOrDefault(player.getUUID(), 0x145F31)));
+            }
         }
 
         /** 攻击伤害结算：将「众水」累积的攻击力倍率应用到伤害上 */
@@ -1428,6 +1462,33 @@ public class SkydeitySlash {
                                 player.getX() + Math.cos(a) * r, y, player.getZ() + Math.sin(a) * r,
                                 1, 0, 0, 0, 0);
                     }
+                    // 笛烟和声魂断绝：身前竖立一把折扇（扇轴在下方、扇面竖直朝上展开正对玩家），墨绿色/深绿色/水墨色
+                    {
+                        Vec3 flook = player.getLookAngle();
+                        double hx = flook.x, hz = flook.z;
+                        double hl = Math.sqrt(hx * hx + hz * hz);
+                        if (hl < 0.001) { hx = 0; hz = 1; } else { hx /= hl; hz /= hl; }
+                        double rx = -hz, rz = hx; // 右侧轴：扇面在「竖直(上) × 右」平面内展开，正对玩家
+                        // 扇轴：玩家身前 1.9 格（比原先远一格）、约胸口高度（扇骨自此处向上散开）
+                        double bx = player.getX() + hx * 1.9, by = player.getY() + 0.7, bz = player.getZ() + hz * 1.9;
+                        DustParticleOptions fanInk   = new DustParticleOptions(new Vector3f(0.13f, 0.13f, 0.14f), 1.0f); // 水墨色
+                        DustParticleOptions fanGreen = new DustParticleOptions(new Vector3f(0.08f, 0.37f, 0.19f), 1.0f); // 墨绿色
+                        DustParticleOptions fanDeep  = new DustParticleOptions(new Vector3f(0.035f, 0.20f, 0.10f), 1.0f); // 深绿色
+                        for (int a = -6; a <= 6; a++) {
+                            double ang = a * Math.PI / 12.0;  // 每根扇骨与竖直方向夹角（±90°，合计 180° 扇面）
+                            double dx = Math.sin(ang);        // 右向分量
+                            double dy = Math.cos(ang);        // 竖直（向上）分量
+                            DustParticleOptions rib = (Math.abs(a) >= 5) ? fanInk
+                                    : (Math.abs(a) >= 3 ? fanGreen : fanDeep);
+                            for (double r = 0.3; r <= 1.75; r += 0.11) {
+                                sl.sendParticles(rib,
+                                        bx + rx * dx * r,
+                                        by + dy * r,
+                                        bz + rz * dx * r,
+                                        1, 0, 0, 0, 0);
+                            }
+                        }
+                    }
                 }
             }
             if (hasHualanYunyi) {
@@ -1568,38 +1629,30 @@ public class SkydeitySlash {
             return new Vector3f(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t);
         }
 
-        /** 柔光凝露梦湖起波：命中目标处的天蓝弧光粒子 —— 头顶 24 粒天蓝电火汇聚成细亮核心 + 目标上方 3 格弧形光带 + 击中 14 粒星屑与 GLOW 余辉 */
+        /** 柔光凝露梦湖起波：每次命中只召唤一条斜向的星形电火（ELECTRIC_SPARK），从目标斜上方斜插向头顶 */
         private static void spawnSkyArcHit(ServerLevel sl, LivingEntity target) {
-            double cx = target.getX(), cy = target.getY() + target.getBbHeight() * 0.6, cz = target.getZ();
-            // 凝聚：头顶 24 粒天蓝 ELECTRIC_SPARK 汇拢成细亮核心（中心亮、四周极淡）
-            for (int i = 0; i < 24; i++) {
-                double a = sl.random.nextDouble() * Math.PI * 2;
-                double r = sl.random.nextDouble() * 0.5;
-                double vy = target.getBbHeight() * (0.8 + 0.6 * sl.random.nextDouble());
-                sl.sendParticles(ParticleTypes.ELECTRIC_SPARK,
-                        cx + Math.cos(a) * r, cy + vy, cz + Math.sin(a) * r,
-                        1, Math.cos(a) * -0.08, -0.10, Math.sin(a) * -0.08, 1.0);
+            // 目标头顶落点
+            double tx = target.getX();
+            double tz = target.getZ();
+            double top = target.getY() + target.getBbHeight() + 0.05;
+            // 斜向：随机水平方位 + 随机倾斜，一条直线斜插向头顶
+            double a = sl.random.nextDouble() * Math.PI * 2;      // 绕目标的水平方位角
+            double tilt = 0.25 + sl.random.nextDouble() * 0.6;    // 倾斜程度（越大越斜）
+            double len = 2.4 + sl.random.nextDouble() * 1.4;      // 电火长度
+            double horiz = len * Math.sin(tilt);
+            double vert = len * Math.cos(tilt);
+            double sx = tx + Math.cos(a) * horiz;
+            double sz = tz + Math.sin(a) * horiz;
+            double sy = top + vert;
+            // 沿「起点 → 头顶」这条直线均匀落点，点够密以连成一条线
+            int seg = 22;
+            for (int k = 0; k <= seg; k++) {
+                double f = k / (double) seg;
+                double px = sx + (tx - sx) * f;
+                double py = sy + (top - sy) * f;
+                double pz = sz + (tz - sz) * f;
+                sl.sendParticles(ParticleTypes.ELECTRIC_SPARK, px, py, pz, 1, 0, 0, 0, 0);
             }
-            // 下落：主目标中心向上一段天蓝 Dust 弧形光带，长 3 格
-            for (int k = 1; k <= 7; k++) {
-                float t = k / 7.0f;
-                double arcY = cy + 4.0f * (1.0f - t) - 1.5f * t * t;
-                float colMix = t;
-                Vector3f c = new Vector3f(
-                        0.33f + colMix * 0.30f,
-                        0.85f + colMix * 0.10f,
-                        1.0f);
-                sl.sendParticles(new DustParticleOptions(c, 0.8f - 0.35f * t),
-                        cx, arcY, cz, 1, 0, -0.05f * t, 0, 0.9);
-            }
-            // 击中：0.6 格半径内 14 粒 ELECTRIC_SPARK 星屑喷溅 + GLOW 余辉
-            for (int i = 0; i < 14; i++) {
-                double a = sl.random.nextDouble() * Math.PI * 2;
-                double sp = 0.08 + sl.random.nextDouble() * 0.25;
-                sl.sendParticles(ParticleTypes.ELECTRIC_SPARK,
-                        cx, cy, cz, 0, sp * Math.cos(a), (sl.random.nextDouble() - 0.5) * 0.3, sp * Math.sin(a), 1.0);
-            }
-            sl.sendParticles(ParticleTypes.GLOW, cx, cy, cz, 6, 0.5, 0.3, 0.5, 1.0);
         }
 
         /** 自诩宇宙的精华（iroi）：脚下聚集一朵蝴蝶形状的樱花（蝶翼前大后小、左右对称，静态不下落不乱飘，仅生成） */
@@ -1741,6 +1794,30 @@ public class SkydeitySlash {
                     }
                 }
             }
+            // 诺德卡莱随行环：环生效期间随玩家移动生成 10 格粒子环，给玩家抗性提升 5，范围内生物缓慢 10
+            UUID ringId = player.getUUID();
+            long ringDeadline = COLUMBINA_RING_DEADLINE.getOrDefault(ringId, -1L);
+            if (ringDeadline > player.level().getGameTime()) {
+                if (player.level() instanceof ServerLevel ringSl) {
+                    Vec3 rp = player.position().add(0, 0.2, 0);
+                    double rot = player.level().getGameTime() * 0.02;
+                    int ringPts = 72; // 一条圆环，更高密度
+                    for (int k = 0; k < ringPts; k++) {
+                        double th = rot + k * (Math.PI * 2.0 / ringPts);
+                        slRingParticle(ringSl, rp.x + Math.cos(th) * 10.0, rp.y, rp.z + Math.sin(th) * 10.0);
+                    }
+                    player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 100, 4));
+                    for (LivingEntity re : ringSl.getEntitiesOfClass(LivingEntity.class,
+                            player.getBoundingBox().inflate(10.0),
+                            x -> x.isAlive() && !x.isSpectator())) {
+                        if (re == player) continue;
+                        if (re.position().distanceToSqr(rp) > 100.0) continue;
+                        re.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 100, 9));
+                    }
+                }
+            } else {
+                COLUMBINA_RING_DEADLINE.remove(ringId);
+            }
             ItemStack stack = player.getMainHandItem();
             ISlashBladeState state = stack.getCapability(CapabilitySlashBlade.BLADESTATE, null).orElse(null);
             boolean hasJiangwan = state != null
@@ -1835,6 +1912,11 @@ public class SkydeitySlash {
             if (st.hasSpecialEffect(ModSpecialEffects.SILVER_PIN_MOTH_EFFECT.getId()))
                 return SpecialEffect.isEffective(ModSpecialEffects.SILVER_PIN_MOTH_EFFECT.getId(), player.experienceLevel);
             return false;
+        }
+
+        /** 诺德卡莱随行环的一粒粒子：深蓝偏青尘埃（颜色更深、浓度更高） */
+        private static void slRingParticle(ServerLevel sl, double x, double y, double z) {
+            sl.sendParticles(new DustParticleOptions(new Vector3f(0.16f, 0.42f, 0.80f), 1.0f), x, y, z, 1, 0, 0, 0, 0.04);
         }
 
         /** 移除雨间蝶舞施加的生命/护甲/攻击力修饰符 */

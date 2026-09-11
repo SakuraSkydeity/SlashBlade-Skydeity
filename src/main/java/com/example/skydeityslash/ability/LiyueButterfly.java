@@ -2,6 +2,7 @@ package com.example.skydeityslash.ability;
 
 import com.example.skydeityslash.entity.EntityHutaoCircleSlash;
 import com.example.skydeityslash.registry.ModEntities;
+import com.example.skydeityslash.registry.ModEffects;
 import mods.flammpfeil.slashblade.SlashBlade.RegistryEvents;
 import mods.flammpfeil.slashblade.capability.slashblade.CapabilitySlashBlade;
 import mods.flammpfeil.slashblade.capability.slashblade.ISlashBladeState;
@@ -10,6 +11,7 @@ import mods.flammpfeil.slashblade.util.KnockBacks;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
@@ -48,6 +50,15 @@ public class LiyueButterfly {
 
         // 释放剑技时刀身特效颜色改为深红色
         state.setEffectColor(new Color(WAVE_COLOR));
+
+        // 给周围 4 格生物添加血梅香 3 级、持续 5 秒（玩家自身不受影响）
+        Vec3 hc = player.position();
+        for (LivingEntity e : serverLevel.getEntitiesOfClass(LivingEntity.class,
+                player.getBoundingBox().inflate(4.0),
+                x -> x != player && x.isAlive() && !x.isSpectator())) {
+            if (e.position().distanceToSqr(hc) > 16.0) continue;
+            e.addEffect(new MobEffectInstance(ModEffects.BLOOD_PLUM.get(), 100, 2));
+        }
 
         // 阶段一：円刀——4 道红色环形刀光依次展开，每段 520 真伤
         Vec3 slashPos = player.position().add(0.0, player.getEyeHeight() * 0.75, 0.0)

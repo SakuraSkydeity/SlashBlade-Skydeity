@@ -23,7 +23,8 @@ public class EnchantingApparatusBlockEntityRenderer implements BlockEntityRender
         if (blockEntity.getStack().isEmpty()) return;
         float time = (blockEntity.getLevel() == null ? 0 : blockEntity.getLevel().getGameTime()) + partialTick;
         pose.pushPose();
-        pose.translate(0.5, 0.6 + 0.06 * Math.sin(time / 5.0), 0.5);
+        // 悬浮在月晶核心之上（核心顶约 0.94），物品一并呈悬浮状，显示位置再抬高一些
+        pose.translate(0.5, 1.35 + 0.06 * Math.sin(time / 5.0), 0.5);
         pose.mulPose(Axis.YP.rotationDegrees(time * 1.2f));
         pose.scale(0.6f, 0.6f, 0.6f);
         Minecraft.getInstance().getItemRenderer()

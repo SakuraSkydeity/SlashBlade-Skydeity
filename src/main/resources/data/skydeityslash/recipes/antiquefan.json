@@ -2,15 +2,15 @@
   "type": "minecraft:crafting_shaped",
   "pattern": [
     " D ",
-    "DGD",
+    "DLD",
     " D "
   ],
   "key": {
     "D": {
-      "item": "minecraft:diamond"
+      "item": "minecraft:cherry_leaves"
     },
-    "G": {
-      "item": "minecraft:gold_ingot"
+    "L": {
+      "item": "minecraft:diamond"
     }
   },
   "result": {

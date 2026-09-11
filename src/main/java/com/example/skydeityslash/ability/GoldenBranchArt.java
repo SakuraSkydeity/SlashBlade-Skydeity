@@ -77,6 +77,7 @@ public class GoldenBranchArt {
             EntityGoldenWave wave = new EntityGoldenWave(SlashBlade.RegistryEvents.Drive, server);
             wave.setPos(spawn);
             wave.setShooter(player);
+            wave.setColor(0xC4A02E); // 一周剑气：柔和的暗黄色（不刺眼）
             wave.setDamage(0.01);
             wave.setSpeed(speed);
             wave.setBaseSize(0.5f);

@@ -42,7 +42,7 @@ public class EntityGoldenWave extends EntityDrive {
             Vec3 pos = position();
             Vec3 vel = getDeltaMovement();
             for (int i = 0; i < 3; i++) {
-                serverLevel.sendParticles(new DustParticleOptions(new Vector3f(1.0f, 0.88f, 0.25f), 0.4f),
+                serverLevel.sendParticles(new DustParticleOptions(new Vector3f(0.80f, 0.68f, 0.22f), 0.4f),
                         pos.x - vel.x * i, pos.y - vel.y * i, pos.z - vel.z * i,
                         1, 0.08, 0.08, 0.08, 0);
             }

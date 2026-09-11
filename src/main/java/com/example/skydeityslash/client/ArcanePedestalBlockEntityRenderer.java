@@ -23,7 +23,7 @@ public class ArcanePedestalBlockEntityRenderer implements BlockEntityRenderer<Ar
         if (blockEntity.getStack().isEmpty()) return;
         float time = (blockEntity.getLevel() == null ? 0 : blockEntity.getLevel().getGameTime()) + partialTick;
         pose.pushPose();
-        pose.translate(0.5, 1.5 + 0.10 * Math.sin(time / 6.0), 0.5);
+        pose.translate(0.5, 1.28 + 0.10 * Math.sin(time / 6.0), 0.5);
         pose.mulPose(Axis.YP.rotationDegrees(time * 1.5f));
         pose.scale(0.75f, 0.75f, 0.75f);
         Minecraft.getInstance().getItemRenderer()

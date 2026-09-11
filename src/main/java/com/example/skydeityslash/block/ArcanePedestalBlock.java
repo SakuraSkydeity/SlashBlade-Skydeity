@@ -24,12 +24,18 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  */
 public class ArcanePedestalBlock extends Block implements EntityBlock {
 
-    /** 基座形状（4 段台阶：底座收腰 0-1 / 1-2 / 细柱 2-11 / 小顶 11-12），与模型逐段一致，仅用于碰撞/选取 */
+    /** 基座形状（圣杯式·小号：底盘 0-1 / 束腰 1-2 / 柱身 2-7 / 符文颈环 5-6 / 敞口托盘 8-11），与模型逐段一致，仅用于碰撞/选取 */
     private static final VoxelShape SHAPE = Shapes.or(
             box(4, 0, 4, 12, 1, 12),
             box(5, 1, 5, 11, 2, 11),
-            box(6, 2, 6, 10, 11, 10),
-            box(5, 11, 5, 11, 12, 11));
+            box(6, 2, 6, 10, 7, 10),
+            box(5, 5, 5, 11, 6, 11),
+            box(5, 7, 5, 11, 8, 11),
+            box(5, 8, 5, 11, 9, 11),
+            box(4, 9, 4, 12, 11, 5),
+            box(4, 9, 11, 12, 11, 12),
+            box(4, 9, 5, 5, 11, 11),
+            box(11, 9, 5, 12, 11, 11));
 
     public ArcanePedestalBlock() {
         super(Properties.of()

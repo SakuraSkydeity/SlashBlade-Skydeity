@@ -99,11 +99,18 @@ public class EnchantingApparatusBlock extends Block implements EntityBlock {
         super.playerDestroy(level, player, pos, state, blockEntity, stack);
     }
 
-    /** 核心外观：底部基座 + 顶部天蓝浮空平台，中间透明空腔 */
+    /** 核心外观：更大的底盘 + 四角立柱 + 悬浮在空中的月晶核心（底座与核心之间留空，形成悬浮感） */
     private static final VoxelShape SHAPE = net.minecraft.world.phys.shapes.Shapes.or(
-            box(3, 0, 3, 13, 2, 13),
-            box(2, 14, 2, 14, 16, 14),
-            box(4, 13, 4, 12, 14, 12));
+            box(1, 0, 1, 15, 3, 15),
+            box(2, 3, 2, 14, 4, 14),
+            box(3, 4, 3, 13, 5, 13),
+            box(2, 5, 2, 4, 7, 4),
+            box(12, 5, 2, 14, 7, 4),
+            box(2, 5, 12, 4, 7, 14),
+            box(12, 5, 12, 14, 7, 14),
+            box(6, 9, 6, 10, 10, 10),
+            box(5, 10, 5, 11, 14, 11),
+            box(6, 14, 6, 10, 15, 10));
 
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext ctx) {

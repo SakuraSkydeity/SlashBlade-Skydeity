@@ -9,6 +9,8 @@ import mods.flammpfeil.slashblade.entity.EntityDrive;
 import mods.flammpfeil.slashblade.util.KnockBacks;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
@@ -44,10 +46,31 @@ public class ColumbinaArt {
                 ? te.position().add(0, te.getBbHeight() * 0.5, 0)
                 : player.position().add(player.getLookAngle().x * 6.0, 0.9, player.getLookAngle().z * 6.0);
 
+        // 释放域伤 + 发光：给周围 7 格生物 25% 最大生命真伤，并施加 10s 发光，玩家自身不受影响
+        Vec3 pc = player.position();
+        for (LivingEntity e : server.getEntitiesOfClass(LivingEntity.class,
+                player.getBoundingBox().inflate(7.0),
+                x -> x != player && x.isAlive() && !x.isSpectator())) {
+            if (e.position().distanceToSqr(pc) > 49.0) continue;
+            SkydeitySlash.GameEvents.applyTrueDamage(e, player, e.getMaxHealth() * 0.25f);
+            e.addEffect(new MobEffectInstance(MobEffects.GLOWING, 200, 0));
+        }
+
         // 保留原 SA 粒子第一段：目标处释放 frostflourish 螺旋冰花
         VanillaEffectSpawner.frostFlourish(server, targetPos);
 
-        // 12 道天蓝色剑气从天而降：目标上方随机散布，直直落下，因撞到目标/地面而消散
+        // 召唤 12 道天蓝色剑气从天而降（复用与方法共用一个实现）
+        spawnSkyBlueBlades(server, player, targetPos, target);
+
+        // 保留原 SA 粒子第二段：在玩家身边延时释放 frost_nova 冰霜新星（一个放完再放另一个）
+        SkydeitySlash.GameEvents.scheduleColumbinaNova(player);
+
+        // 诺德卡莱随行环：激活 10 格半径的环，持续 5 秒（重复使用刷新时长，最长 5 秒）
+        SkydeitySlash.GameEvents.activateColumbinaRing(player);
+    }
+
+    /** 召唤 12 道天蓝色剑气：从天而降、随机散布、直直落下，命中目标/地面消散（纯剑气，无粒子特效） */
+    private static void spawnSkyBlueBlades(ServerLevel server, ServerPlayer player, Vec3 targetPos, Entity target) {
         for (int i = 0; i < BLADE_COUNT; i++) {
             double a = server.random.nextDouble() * Math.PI * 2;
             double off = 0.4 + server.random.nextDouble() * 1.4;
@@ -72,8 +95,5 @@ public class ColumbinaArt {
                 SkydeitySlash.GameEvents.registerColumbinaHoming(blade.getId(), lock.getId());
             }
         }
-
-        // 保留原 SA 粒子第二段：在玩家身边延时释放 frost_nova 冰霜新星（一个放完再放另一个）
-        SkydeitySlash.GameEvents.scheduleColumbinaNova(player);
     }
 }

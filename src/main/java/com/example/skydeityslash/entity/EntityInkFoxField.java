@@ -28,9 +28,9 @@ import java.util.List;
 public class EntityInkFoxField extends Entity {
     public static final int LIFETIME = 64;
 
-    private static final Vector3f TEAL = new Vector3f(0.30f, 0.74f, 0.48f);    // 山水绿
-    private static final Vector3f LITE = new Vector3f(0.46f, 0.88f, 0.64f);    // 翠玉
-    private static final Vector3f MOON = new Vector3f(0.92f, 0.98f, 0.95f);     // 月白
+    private static final Vector3f TEAL = new Vector3f(0.14f, 0.33f, 0.21f);   // 墨绿
+    private static final Vector3f LITE = new Vector3f(0.18f, 0.42f, 0.27f);   // 暗绿
+    private static final Vector3f MOON = new Vector3f(0.22f, 0.56f, 0.34f);   // 亮墨绿（亮芯）
 
     private int ownerId = -1;
     private float baseDamage = 1.0f;
@@ -111,7 +111,7 @@ public class EntityInkFoxField extends Entity {
                 double radius = 1.2 + open * 5.6 + random.nextDouble() * 0.5;
                 double y = 0.1 + random.nextDouble() * (0.5 + open * 2.2);
                 dust(server, getX() + Math.cos(ang) * radius, getY() + y, getZ() + Math.sin(ang) * radius,
-                        0.30f + 0.30f * (float) open, 0.74f, 0.48f);
+                        0.14f + 0.04f * (float) open, 0.33f, 0.21f);
             }
             // 翠玉峰脊点缀沿扇面
             for (int i = 0; i < count / 3; i++) {
@@ -120,7 +120,7 @@ public class EntityInkFoxField extends Entity {
                 Vec3 f = flatForward();
                 Vec3 right = new Vec3(-f.z, 0, f.x);
                 Vec3 p = position().add(f.scale(ahead)).add(right.scale(side)).add(0, 0.15 + random.nextDouble() * 1.9, 0);
-                dust(server, p.x, p.y, p.z, 0.46f, 0.88f, 0.64f);
+                dust(server, p.x, p.y, p.z, 0.18f, 0.42f, 0.27f);
             }
         }
         // 中央凝光团（月白核）
@@ -129,7 +129,7 @@ public class EntityInkFoxField extends Entity {
             server.sendParticles(ParticleTypes.END_ROD, c.x, c.y, c.z, t == 42 ? 30 : 16, 0.72, 0.55, 0.72, 0.14);
             for (int i = 0; i < (t == 42 ? 26 : 12); i++)
                 dust(server, c.x + (random.nextDouble() - 0.5) * 1.3, c.y + (random.nextDouble() - 0.5) * 1.3,
-                        c.z + (random.nextDouble() - 0.5) * 1.3, 0.92f, 0.98f, 0.95f);
+                        c.z + (random.nextDouble() - 0.5) * 1.3, 0.22f, 0.56f, 0.34f);
         }
         // 余辉飘散
         if (t >= 44 && (t & 1) == 0) {
@@ -138,7 +138,7 @@ public class EntityInkFoxField extends Entity {
                 double r = random.nextDouble() * 6.4;
                 double y = 0.4 + random.nextDouble() * 2.6;
                 dust(server, getX() + Math.cos(a) * r, getY() + y, getZ() + Math.sin(a) * r,
-                        0.30f, 0.74f, 0.48f);
+                        0.14f, 0.33f, 0.21f);
             }
         }
     }
