@@ -80,6 +80,22 @@ public final class GlowGeometry {
         }
     }
 
+    // ---------------- 单子特效预览 ----------------
+    /** 只渲染某一个子特效，含其所在通道的叠加（等价完整效果中该部分），全部入同一加成缓冲。 */
+    public static void renderSubEffect(Matrix4f m, VertexConsumer vc, int sub, float age, float viewYaw, float viewPitch) {
+        switch (sub) {
+            case 0: groundRings(m, vc, age); break;                                    // 地基碎环
+            case 1: haloShell(m, vc, age); break;                                      // 高悬环壳
+            case 2: slashTimeline(m, vc, age); slashTimeline(m, vc, age); break;       // 新月弧斩(色彩+发光)
+            case 3: verticalArcs(m, vc, age); verticalArcs(m, vc, age); break;         // 竖弧(色彩+发光)
+            case 4: glowBall(m, vc, age, viewYaw, viewPitch); break;                   // 白色光球
+            case 5: fragments(m, vc, age); break;                                      // 碎片
+            case 6: mandala(m, vc, age); break;                                        // 旋转碎环法阵
+            case 7: wingSigils(m, vc, age); wingSigils(m, vc, age); break;             // 翼铭文(色彩+发光)
+            default: unityFinisher(m, vc, age); unityFinisher(m, vc, age); break;      // 合击金光柱/冲击环
+        }
+    }
+
     // ---------------- BASE_COLOR ----------------
     private static void groundRings(Matrix4f m, VertexConsumer vc, float age) {
         float open = smoother(stage(age, 5, 10)), fade = 1 - smoother(stage(age, 38, 16)), a = open * fade;

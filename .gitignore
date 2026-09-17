@@ -21,3 +21,7 @@ bin/
 *_gen_*.ps1
 scripts/
 deps/jarextract/
+
+# Python caches（防止 __pycache__/*.pyc 再被提交）
+__pycache__/
+*.pyc

@@ -149,10 +149,10 @@ public class EnchantingApparatusBlockEntity extends BlockEntity implements Conta
     public void tickClient() {
         if (this.level == null || !this.level.isClientSide) return;
         if (!crafting) return;
-        // 装置头顶星点
+        // 圆球顶上的星点（方块已加高到两格，圆球顶约 1.94）
         level.addParticle(ParticleTypes.END_ROD,
                 worldPosition.getX() + 0.5 + (level.random.nextDouble() - 0.5) * 0.5,
-                worldPosition.getY() + 1.3,
+                worldPosition.getY() + 2.05,
                 worldPosition.getZ() + 0.5 + (level.random.nextDouble() - 0.5) * 0.5,
                 0, 0.02, 0);
         // 基座连线光点

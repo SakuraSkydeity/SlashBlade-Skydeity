@@ -10,10 +10,16 @@
   "item.skydeityslash.qiyuniao_ignot": "Qiyuniao Ingot",
   "item.skydeityslash.pigeon_ignot": "Moon Pigeon Ingot",
   "item.skydeityslash.antiquefan": "Crescent Moon Fan",
+  "item.skydeityslash.chikui_ignot": "Chikui Ingot",
   "dimension.skydeityslash.mandarava": "The Far Shore",
   "jei.skydeityslash.enchanting_apparatus": "Enchanting Apparatus (Multi-block Crafting)",
   "emi.category.skydeityslash.enchanting_apparatus": "Enchanting Apparatus (Multi-block Crafting)",
   "item.skydeityslash.hutao": "\u00a7c\u00a7lHu Tao\u00a76\u00a7l Liyue\u00a7c\u00a7l: Snow Clear Plum Fragrance",
+  "item.skydeityslash.zankou": "\u00a7c\u00a7lRemnant Rainbow\u00a7c\u00a7l: Red Hollyhock, Burning Fire, Crimson Mirage",
+  "slash_art.skydeityslash.chikui_fentian": "\u00a7cRed Hollyhock\u00a74: Sky-Burning Dance",
+  "se.skydeityslash.zankou_se30": "\u00a74Abyss in the Pupil, Kiss at the Deep",
+  "se.skydeityslash.zankou_se40": "\u00a74Kiss Mark, Dream-Peeping Nightmare Blossom",
+  "se.skydeityslash.zankou_se50": "\u00a74Blooms See Blood, Blood Dyes Both Pupils",
   "slash_art.skydeityslash.liyue_butterfly": "\u00a7cLiyue\u00a7d: Butterfly's Guide to the Afterlife",
   "slash_art.skydeityslash.xuanfeng_huixue": "\u00a77Snezhnaya\u00a7f Xuanfeng Huixue",
   "item.skydeityslash.odette": "\u00a7f\u00a7lOdette\u00a77\u00a7l Snezhnaya\u00a7f\u00a7l: White Lake Winter Feather",
@@ -32,6 +38,5 @@
   "se.skydeityslash.celestial_farewell": "\u00a76Farewell Gift of the Celestial Realm",
   "se.skydeityslash.falling_moon_feather": "\u00a76Falling Feather of the Moon-Omen",
   "effect.skydeityslash.blood_plum": "\u00a7cBlood Plum",
-  "effect.skydeityslash.lumi": "\u00a76Lumi",
-  "item.skydeityslash.test1": "\u00a7fTest Blade I"
+  "effect.skydeityslash.lumi": "\u00a76Lumi"
 }

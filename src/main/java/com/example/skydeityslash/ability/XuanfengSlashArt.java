@@ -1,5 +1,6 @@
 package com.example.skydeityslash.ability;
 
+import com.example.skydeityslash.entity.EntityXuanfengRing;
 import com.example.skydeityslash.entity.EntityXuanfengWave;
 import mods.flammpfeil.slashblade.SlashBlade.RegistryEvents;
 import mods.flammpfeil.slashblade.capability.slashblade.CapabilitySlashBlade;
@@ -66,23 +67,27 @@ public class XuanfengSlashArt {
 
         // 天降幻影剑：共 2 轮。每轮围绕锁定目标（无锁定则准星前方 6 格）生成 8 把白色幻影剑，
         // 从目标上方 6 格、半径 2.6 的环形向目标扎落，每把 52 真伤（放慢速度，用回原版幻影剑形态避免下落模型变形）
+        Vec3 aim = aimPoint(player, level, state);
         if (level instanceof ServerLevel serverLevel) {
-            spawnSkySwords(player, level, state);   // 第 1 轮
+            spawnSkySwords(player, level, state, aim);   // 第 1 轮
             serverLevel.getServer().tell(new TickTask(serverLevel.getServer().getTickCount() + 10,
-                    () -> spawnSkySwords(player, level, state)));  // 第 2 轮（略延时错开）
+                    () -> spawnSkySwords(player, level, state, aim)));  // 第 2 轮（略延时错开）
+            // 白色动态圆环：环绕锁定目标/落点，纯视觉（移植自鸣雷神 RING_BACK 轨道弧环 + 旋转 ribbon 环，改纯白）
+            EntityXuanfengRing.spawn(level, aim.add(0, 0.6, 0), player.getLookAngle());
         }
     }
 
-    /** 天降幻影剑一轮：围绕锁定目标/准星前方，从上方 6 格、半径 2.6 环形扎落 8 把白剑，每把 52 真伤 */
-    private static void spawnSkySwords(ServerPlayer player, Level level, ISlashBladeState state) {
-        Vec3 look = player.getLookAngle();
+    /** 落点/锁定目标中心：锁定目标取目标中心稍上，否则取准星前方 6 格 */
+    private static Vec3 aimPoint(ServerPlayer player, Level level, ISlashBladeState state) {
         Entity tgt = state.getTargetEntity(level);
-        final Vec3 aim;
-        if (tgt != null && tgt.isAlive() && !tgt.isRemoved()) {
-            aim = tgt.position().add(0.0, tgt.getEyeHeight() * 0.3, 0.0);
-        } else {
-            aim = player.getEyePosition().add(look.scale(6.0));
+        if (tgt instanceof LivingEntity tl && tl.isAlive() && !tl.isRemoved()) {
+            return tl.position().add(0.0, tl.getEyeHeight() * 0.3, 0.0);
         }
+        return player.getEyePosition().add(player.getLookAngle().scale(6.0));
+    }
+
+    /** 天降幻影剑一轮：围绕落点从上方 6 格、半径 2.6 环形扎落 8 把白剑，每把 52 真伤 */
+    private static void spawnSkySwords(ServerPlayer player, Level level, ISlashBladeState state, Vec3 aim) {
         for (int i = 0; i < 8; i++) {
             double ang = (i / 8.0) * Math.PI * 2.0;
             Vec3 start = aim.add(Math.cos(ang) * 2.6, 6.0, Math.sin(ang) * 2.6);

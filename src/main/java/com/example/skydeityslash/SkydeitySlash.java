@@ -2,7 +2,6 @@ package com.example.skydeityslash;
 
 import com.example.skydeityslash.client.ModClientEvents;
 import com.example.skydeityslash.entity.FurinaNpcEntity;
-import com.example.skydeityslash.entity.EntityInkButterfly;
 import com.example.skydeityslash.entity.EntityXuanfengWave;
 import com.example.skydeityslash.entity.EntityInkSwarm;
 import com.example.skydeityslash.entity.EntityRainUmbrella;
@@ -44,6 +43,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -72,6 +72,8 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.registries.RegistryObject;
 import org.joml.Vector3f;
 import org.slf4j.Logger;
 
@@ -115,11 +117,13 @@ public class SkydeitySlash {
         }
         MinecraftForge.EVENT_BUS.addListener(GameEvents::onBladeHit);
         MinecraftForge.EVENT_BUS.addListener(GameEvents::onPhantomSwordColor);
+        MinecraftForge.EVENT_BUS.addListener(GameEvents::onSlashArcColor);
         MinecraftForge.EVENT_BUS.addListener(GameEvents::onSummonedSwordHit);
         MinecraftForge.EVENT_BUS.addListener(GameEvents::onBladeCreated);
         MinecraftForge.EVENT_BUS.addListener(GameEvents::onUpdate);
         MinecraftForge.EVENT_BUS.addListener(GameEvents::onUpdateAttack);
         MinecraftForge.EVENT_BUS.addListener(GameEvents::onLivingIncomingDamage);
+        MinecraftForge.EVENT_BUS.addListener(GameEvents::onLivingDeath);
         MinecraftForge.EVENT_BUS.addListener(GameEvents::onLivingDamagePost);
         MinecraftForge.EVENT_BUS.addListener(GameEvents::onPlayerTick);
         MinecraftForge.EVENT_BUS.addListener(GameEvents::onInputCommand);
@@ -223,12 +227,71 @@ public class SkydeitySlash {
         /** 未来自我连续性假设：累计攻击命中次数，每 3 次放一道十字剑气（用后清零） */
         private static final Map<UUID, Integer> IROI_CROSS_SLASH_COUNT = new HashMap<>();
 
+        /** 花开见血血染双瞳：蓄势后剩余的「额外真伤」次数（每次命中 −1，用完即清） */
+        private static final Map<UUID, Integer> ZANKOU_BLOOM_CHARGES = new HashMap<>();
+        /** 花开见血血染双瞳：蓄势的有效截止时间（gameTime）—— 防止挂机时把次数一直留着 */
+        private static final Map<UUID, Long> ZANKOU_BLOOM_DEADLINE = new HashMap<>();
+        /** 花开见血血染双瞳：蓄势后带伤的攻击次数 */
+        private static final int ZANKOU_BLOOM_CHARGES_MAX = 3;
+        /** 花开见血血染双瞳：蓄势窗口（tick）= 30 秒内打完 3 次 */
+        private static final int ZANKOU_BLOOM_WINDOW = 600;
+        /** 花开见血血染双瞳：每次攻击额外结算的真伤 */
+        private static final float ZANKOU_BLOOM_DAMAGE = 52.0f;
+        /** 花开见血血染双瞳：蓄势后刀身暗红 */
+        private static final int ZANKOU_BLOOM_COLOR = 0x9B0E22;
+
+        /** 瞳中深渊渊底之吻：累计命中次数 —— 每 3 次在目标身上绽开一朵几何樱花（用后清零） */
+        private static final Map<UUID, Integer> ZANKOU_ABYSS_COUNT = new HashMap<>();
+        /** 瞳中深渊渊底之吻：每 3 次命中额外结算的真伤 */
+        private static final float ZANKOU_ABYSS_DAMAGE = 52.0f;
+        /** 瞳中深渊渊底之吻：每次命中回复的生命（heal 本身会被钳到最大生命，这里再加一道保险） */
+        private static final float ZANKOU_ABYSS_HEAL = 2.0f;
+        /** 瞳中深渊渊底之吻：樱花绽开时目标脚下撒几片花瓣 */
+        private static final int ZANKOU_ABYSS_PETALS = 10;
+
+        /** 吻痕窥梦梦魇生花：累计命中次数 —— 每 7 次划出横切割刀痕（用后清零） */
+        private static final Map<UUID, Integer> ZANKOU_DREAM_COUNT = new HashMap<>();
+        /** 吻痕窥梦梦魇生花：几次命中触发一次 */
+        private static final int ZANKOU_DREAM_EVERY = 7;
+        /** 吻痕窥梦梦魇生花：给目标施加的「缓慢」等级（10 级 = amplifier 9） */
+        private static final int ZANKOU_DREAM_SLOW_AMP = 9;
+        /** 吻痕窥梦梦魇生花：缓慢持续（tick）—— 6 秒 */
+        private static final int ZANKOU_DREAM_SLOW_TICKS = 120;
+        /** 吻痕窥梦梦魇生花：触发后**每秒**结算的真伤（流血） */
+        private static final float ZANKOU_DREAM_BLEED_DAMAGE = 52.0f;
+        /** 吻痕窥梦梦魇生花：每秒结算持续几秒 —— 与「缓慢」同为 6 秒 */
+        private static final int ZANKOU_DREAM_BLEED_SECONDS = 6;
+
         /** 森林萤火：花株生成后固定的原地位置（不跟随玩家），距玩家过远才重置于身前；效果结束即清除 */
         private static final Map<UUID, Vec3> FOREST_FLOWER_POS = new HashMap<>();
 
         private static boolean isForestFireflyActive(Player player) {
             Long deadline = FOREST_FIREFLY_ACTIVE.get(player.getUUID());
             return deadline != null && deadline > player.level().getGameTime();
+        }
+
+        /** 花开见血血染双瞳：蓄势次数是否还有效（超时则自行清除） */
+        private static boolean hasZankouBloomCharges(Player player) {
+            Integer c = ZANKOU_BLOOM_CHARGES.get(player.getUUID());
+            if (c == null || c <= 0) return false;
+            Long deadline = ZANKOU_BLOOM_DEADLINE.get(player.getUUID());
+            if (deadline == null || deadline <= player.level().getGameTime()) {
+                ZANKOU_BLOOM_CHARGES.remove(player.getUUID());
+                ZANKOU_BLOOM_DEADLINE.remove(player.getUUID());
+                return false;
+            }
+            return true;
+        }
+
+        /** 花开见血血染双瞳：消耗一次蓄势（用完清除） */
+        private static void consumeZankouBloom(Player player) {
+            int left = ZANKOU_BLOOM_CHARGES.getOrDefault(player.getUUID(), 1) - 1;
+            if (left <= 0) {
+                ZANKOU_BLOOM_CHARGES.remove(player.getUUID());
+                ZANKOU_BLOOM_DEADLINE.remove(player.getUUID());
+            } else {
+                ZANKOU_BLOOM_CHARGES.put(player.getUUID(), left);
+            }
         }
 
         /** 注册一道名义卡莱剑气锁定指定目标 */
@@ -431,6 +494,23 @@ public class SkydeitySlash {
                     spawnForestFireflyFlower(serverLevel, player);
                 }
             }
+
+            // 花开见血血染双瞳：按下特殊行动键蓄势 → 接下来 3 次攻击各额外结算 52 真伤（暗红血花），30 秒内打完
+            if (state.hasSpecialEffect(ModSpecialEffects.ZANKOU_SE50.getId())
+                    && SpecialEffect.isEffective(ModSpecialEffects.ZANKOU_SE50.getId(), player.experienceLevel)) {
+                ZANKOU_BLOOM_CHARGES.put(player.getUUID(), ZANKOU_BLOOM_CHARGES_MAX);
+                ZANKOU_BLOOM_DEADLINE.put(player.getUUID(), player.level().getGameTime() + ZANKOU_BLOOM_WINDOW);
+                state.setEffectColor(new Color(ZANKOU_BLOOM_COLOR));
+                if (player.level() instanceof ServerLevel serverLevel) {
+                    // 蓄势瞬间：在锁定目标（没有则身前 3 格）绽开一次同样的暗红刀痕（几何弧线，非粒子）
+                    Entity bloomAim = state.getTargetEntity(serverLevel);
+                    Vec3 bloomCenter = (bloomAim != null && bloomAim.isAlive() && !bloomAim.isRemoved())
+                            ? bloomAim.position().add(0.0, bloomAim.getBbHeight() * 0.5, 0.0)
+                            : player.getEyePosition().add(player.getLookAngle().scale(3.0));
+                    com.example.skydeityslash.entity.EntityBloomSlash.spawn(
+                            serverLevel, bloomCenter, player.getLookAngle());
+                }
+            }
         }
 
         /**
@@ -609,6 +689,116 @@ public class SkydeitySlash {
                 LivingEntity ht = event.getTarget();
                 if (ht instanceof Mob mob) mob.setNoAi(true);
             }
+            // 花开见血血染双瞳：蓄势期间每次命中额外结算 52 真伤并绽开一簇暗红血花，共 3 次
+            if (event.getUser() instanceof Player bloomAttacker
+                    && state.hasSpecialEffect(ModSpecialEffects.ZANKOU_SE50.getId())
+                    && SpecialEffect.isEffective(ModSpecialEffects.ZANKOU_SE50.getId(), bloomAttacker.experienceLevel)
+                    && hasZankouBloomCharges(bloomAttacker)) {
+                LivingEntity bloomTarget = event.getTarget();
+                applyTrueDamage(bloomTarget, bloomAttacker, ZANKOU_BLOOM_DAMAGE);
+                consumeZankouBloom(bloomAttacker);
+                if (bloomAttacker.level() instanceof ServerLevel bs) {
+                    // 特效 = 原本 zankou SA 那套暗红刀痕（六条凌乱弧线，连续几何线条、非粒子），绽开在命中目标身上
+                    com.example.skydeityslash.entity.EntityBloomSlash.spawn(bs,
+                            bloomTarget.position().add(0.0, bloomTarget.getBbHeight() * 0.5, 0.0),
+                            bloomAttacker.getLookAngle());
+                }
+            }
+
+            // 瞳中深渊渊底之吻：每次命中回 2 血；每 3 次命中在目标身上绽开一朵几何樱花 + 额外 52 真伤，
+            // 同时在目标脚下撒 10 片樱花花瓣向外散开
+            if (event.getUser() instanceof Player abyssAttacker
+                    && state.hasSpecialEffect(ModSpecialEffects.ZANKOU_SE30.getId())
+                    && SpecialEffect.isEffective(ModSpecialEffects.ZANKOU_SE30.getId(), abyssAttacker.experienceLevel)) {
+                LivingEntity abyssTarget = event.getTarget();
+                // 回血 —— heal 内部会经 setHealth 钳到最大生命，这里再加一道显式保险
+                if (abyssAttacker.getHealth() < abyssAttacker.getMaxHealth()) {
+                    abyssAttacker.heal(ZANKOU_ABYSS_HEAL);
+                }
+                UUID abyssId = abyssAttacker.getUUID();
+                int abyssCount = ZANKOU_ABYSS_COUNT.getOrDefault(abyssId, 0) + 1;
+                if (abyssCount >= 3) {
+                    ZANKOU_ABYSS_COUNT.put(abyssId, 0);
+                    applyTrueDamage(abyssTarget, abyssAttacker, ZANKOU_ABYSS_DAMAGE);
+                    if (abyssAttacker.level() instanceof ServerLevel asl) {
+                        // 几何樱花：5 片花瓣绕中心均分 72°（纯视觉实体，连续几何、非粒子）
+                        com.example.skydeityslash.entity.EntitySakuraBloom.spawn(asl,
+                                abyssTarget.position().add(0.0, abyssTarget.getBbHeight() * 0.6, 0.0));
+                        // 目标脚下撒 10 片樱花花瓣，向外散开
+                        Vec3 abyssFeet = abyssTarget.position();
+                        for (int i = 0; i < ZANKOU_ABYSS_PETALS; i++) {
+                            double a = asl.random.nextDouble() * Math.PI * 2.0;
+                            double sp = 0.10 + asl.random.nextDouble() * 0.10;
+                            asl.sendParticles(ParticleTypes.CHERRY_LEAVES,
+                                    abyssFeet.x + Math.cos(a) * 0.3, abyssFeet.y + 0.15,
+                                    abyssFeet.z + Math.sin(a) * 0.3,
+                                    1, Math.cos(a) * sp, 0.06, Math.sin(a) * sp, 0.02);
+                        }
+                    }
+                } else {
+                    ZANKOU_ABYSS_COUNT.put(abyssId, abyssCount);
+                }
+            }
+
+            // 吻痕窥梦梦魇生花：每 7 次命中划出几道横着的细红圆柱刀痕，并给目标施加「缓慢 10」
+            if (event.getUser() instanceof Player dreamAttacker
+                    && state.hasSpecialEffect(ModSpecialEffects.ZANKOU_SE40.getId())
+                    && SpecialEffect.isEffective(ModSpecialEffects.ZANKOU_SE40.getId(), dreamAttacker.experienceLevel)) {
+                LivingEntity dreamTarget = event.getTarget();
+                UUID dreamId = dreamAttacker.getUUID();
+                int dreamCount = ZANKOU_DREAM_COUNT.getOrDefault(dreamId, 0) + 1;
+                if (dreamCount >= ZANKOU_DREAM_EVERY) {
+                    ZANKOU_DREAM_COUNT.put(dreamId, 0);
+                    dreamTarget.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN,
+                            ZANKOU_DREAM_SLOW_TICKS, ZANKOU_DREAM_SLOW_AMP));
+                    if (dreamAttacker.level() instanceof ServerLevel dsl) {
+                        // 横切割刀痕：几道横着的细红圆柱同时划过目标（纯视觉实体，连续几何、非粒子）
+                        com.example.skydeityslash.entity.EntityCutLines.spawn(dsl,
+                                dreamTarget.position().add(0.0, dreamTarget.getBbHeight() * 0.5, 0.0));
+                        // 持续流血：每秒 52 真伤，共 6 秒（与「缓慢 10」同时长；目标中途死亡/消失即停跳）
+                        final LivingEntity bleedTarget = dreamTarget;
+                        final int bleedStart = dsl.getServer().getTickCount();
+                        for (int sec = 1; sec <= ZANKOU_DREAM_BLEED_SECONDS; sec++) {
+                            final int delay = sec * 20;
+                            dsl.getServer().tell(new TickTask(bleedStart + delay, () -> {
+                                if (bleedTarget.isAlive() && !bleedTarget.isRemoved()) {
+                                    applyTrueDamage(bleedTarget, dreamAttacker, ZANKOU_DREAM_BLEED_DAMAGE);
+                                }
+                            }));
+                        }
+                    }
+                } else {
+                    ZANKOU_DREAM_COUNT.put(dreamId, dreamCount);
+                }
+            }
+        }
+
+        /**
+         * SlashBlade「集中度（练度）」的 C 级下限。低于 C 时 SlashBlade 的刀光渲染器会把颜色强行换成灰色，
+         * 所以刀光弧的 rank 至少要抬到这里，颜色才不会被丢掉。（只影响这一发光弧，不改变玩家练度）
+         */
+        private static final float ARC_MIN_RANK = 2.5f;
+
+        /**
+         * 右键挥砍的「刀光弧」（EntitySlashEffect）按刀上色。两步缺一不可：
+         *  1) 颜色直接取刀状态里当前的颜色 —— 也就是本模组 onUpdate 每 tick 按 SE 写入的颜色，
+         *     没有 SE 覆盖时就是刀定义 JSON 里的 summon_sword_color；
+         *  2) rank < C 时渲染器会丢掉颜色画成灰的（SlashBlade 的练度分级），所以把这一发光弧的
+         *     rank 抬到 C 以上。
+         * 本模组自己的 EntityHutaoCircleSlash（胡桃 SA 环形刀光）自行设色，跳过。
+         */
+        public static void onSlashArcColor(EntityJoinLevelEvent event) {
+            if (!(event.getLevel() instanceof ServerLevel)) return;
+            if (!(event.getEntity() instanceof mods.flammpfeil.slashblade.entity.EntitySlashEffect slash)) return;
+            if (slash instanceof com.example.skydeityslash.entity.EntityHutaoCircleSlash) return;
+            if (!(slash.getOwner() instanceof Player owner) || !owner.isAlive()) return;
+
+            ISlashBladeState st = owner.getMainHandItem()
+                    .getCapability(CapabilitySlashBlade.BLADESTATE, null).orElse(null);
+            if (st == null) return;
+
+            slash.setColor(st.getEffectColor().getRGB());
+            if (slash.getRank() < ARC_MIN_RANK) slash.setRank(ARC_MIN_RANK);
         }
 
         /** 幻影剑逐发循环色：召唤剑进入世界时按属主所持刀的 slash_art 上色（FURINA 蓝 / 胡桃桃红 / 天鹅蓝白 / sakurafox 走暗墨绿循环） */
@@ -652,6 +842,7 @@ public class SkydeitySlash {
             if ("liyue_butterfly".equals(p)) return 0xD62828;  // hutao 红色（原为 0xFF7F9E 桃红偏亮）
             if ("xuanfeng_huixue".equals(p)) return 0xC9E6FF;  // ODETTE 蓝白
             if ("columbina".equals(p)) return 0x2E62A6;        // COLUM 深海蓝（比天蓝更暗、不刺眼、无渐变）
+            if ("chikui_fentian".equals(p)) return 0x9B0E22;   // zankou 暗红（与刀痕/刀身同色系）
             return -1;
         }
 
@@ -688,7 +879,7 @@ public class SkydeitySlash {
             if (name.equals(prefix("slash_furina")) || name.equals(prefix("hutao"))
                     || name.equals(prefix("odette")) || name.equals(prefix("sakurafox"))
                     || name.equals(prefix("linnea")) || name.equals(prefix("columbina"))
-                    || name.equals(prefix("iroi"))) {
+                    || name.equals(prefix("iroi")) || name.equals(prefix("zankou"))) {
                 stack.getCapability(CapabilitySlashBlade.BLADESTATE, null)
                         .ifPresent(state -> {
                             state.setProudSoulCount(5201314);
@@ -754,7 +945,7 @@ public class SkydeitySlash {
                 });
                 // 灰色 lore，按句号拆分为多行（与 odette 一致）
                 setLore(stack,
-                        Component.literal("\u00a78喜或悲的谕告，每秒恢复 5 点生命，按下特殊行动按键，推开周围 5 格内所有生物。"),
+                        Component.literal("\u00a78喜或悲的谕告，每秒恢复 5 点生命，按下特殊行动按键，推开周围 5 格内所有生物，免死扣除 10 级。"),
                         Component.literal("\u00a78仙乡的赠别礼，远走他乡的流年，每次命中获得 1 层露米buff，增加攻击力。"),
                         Component.literal("\u00a78月兆堕天的落羽，黄金猎犬之梦，召唤飞鸟每 0.5 秒对周围 5 格内实体造成 52 点魔法伤害，并施加缓慢 10。"));
             } else if (name.equals(prefix("columbina"))) {
@@ -807,6 +998,31 @@ public class SkydeitySlash {
                         Component.literal("\u00a78自诩宇宙的精华，这就是宇宙大爆炸的声音，手持时每 5 秒清空自身全部负面效果并瞬回 10 生命。"),
                         Component.literal("\u00a78未来自我连续性假设，手持此刀每 3 次攻击命中目标，朝目标放一道 52 真伤十字剑气。"),
                         Component.literal("\u00a78妄想彼端的森林萤火，回到最初的梦境中，按下特殊行动键召唤盈蓄花株每 1 秒对周围 3.5 格内生物造成 52 真伤。"));
+            } else if (name.equals(prefix("zankou"))) {
+                // 渐变刀名：残虹(#ED2CA6)「赤葵」(#E40C4D)饲火(#A23D06)·殷红幻景的暮落残阳(#DE1753)
+                // 每段各自「深 → 指定色」渐变，「·」灰色不加粗、其余加粗（走 setGradientName 的统一规则）
+                setGradientName(stack, "残虹「赤葵」饲火·殷红幻景的暮落残阳", new int[]{
+                        0xA1176E, 0xED2CA6,                                                                  // 残虹
+                        0x9B012F, 0xB30137, 0xCC013E, 0xE40C4D,                                              // 「赤葵」
+                        0x6E2700, 0xA23D06,                                                                  // 饲火
+                        0x7D8C7D,                                                                            // ·
+                        0x970934, 0xA00937, 0xA90A3A, 0xB20A3D, 0xBA0B40, 0xC30B43, 0xCC0C46, 0xD50D49, 0xDE1753 // 殷红幻景的暮落残阳
+                });
+                // 显式重排 SE：保证按等级从低到高显示（jiangwan_snow 10 → zankou_se30 → zankou_se40 → zankou_se50）
+                stack.getCapability(CapabilitySlashBlade.BLADESTATE, null)
+                        .ifPresent(st -> {
+                            net.minecraft.nbt.ListTag seList = new net.minecraft.nbt.ListTag();
+                            seList.add(net.minecraft.nbt.StringTag.valueOf(ModSpecialEffects.JIANGWAN_SNOW_EFFECT.getId().toString()));
+                            seList.add(net.minecraft.nbt.StringTag.valueOf(ModSpecialEffects.ZANKOU_SE30.getId().toString()));
+                            seList.add(net.minecraft.nbt.StringTag.valueOf(ModSpecialEffects.ZANKOU_SE40.getId().toString()));
+                            seList.add(net.minecraft.nbt.StringTag.valueOf(ModSpecialEffects.ZANKOU_SE50.getId().toString()));
+                            st.setSpecialEffects(seList);
+                        });
+                // 灰色 lore，以句号为换行（§8 = 深灰色，与其他刀完全一致）
+                setLore(stack,
+                        Component.literal("\u00a78瞳中深渊，渊底之吻，在血泊当中看见了一抹惊悚而瑰丽的红色，每次命中回复自身 2 点生命，每 3 次命中对目标追加 52 点真实伤害。"),
+                        Component.literal("\u00a78吻痕窥梦，梦魇生花，如丝绒般温柔，免疫远程攻击，每 7 次命中使目标缓慢 10，每秒造成 52 点真伤，持续 6 秒。"),
+                        Component.literal("\u00a78花开见血，血染双瞳，血型罪孽的过往，按下特殊行动键使下三次攻击每次追加 52 点真实伤害。"));
             }
         }
 
@@ -1347,25 +1563,20 @@ public class SkydeitySlash {
                 return;
             }
 
-            // 翾风回雪：闪避远程伤害（弓箭/魔法等），1s 隐身 + 烟花爆炸粒子
+            // 翾风回雪：闪避远程伤害（弓箭/魔法等）—— 具体实现在 dodgeRangedDamage(...)，供多个 SE 共用
             boolean hasXuanfeng = state.hasSpecialEffect(ModSpecialEffects.XUANFENG_HUIXUE_EFFECT.getId())
                     && SpecialEffect.isEffective(ModSpecialEffects.XUANFENG_HUIXUE_EFFECT.getId(), player.experienceLevel);
-            if (hasXuanfeng && isRangedDamage(event.getSource(), player)) {
-                event.setCanceled(true);
-                player.invulnerableTime = 20;
-                player.addEffect(new MobEffectInstance(MobEffects.INVISIBILITY, 20, 0));
-                spawnFirework(player, new Vector3f(1.0f, 1.0f, 1.0f), new Vector3f(0.85f, 0.85f, 0.85f));
-                return;
-            }
+            if (hasXuanfeng && dodgeRangedDamage(event, player)) return;
 
-            // 银簪·离魂烟暖笛烟化蝶舞：远程免疫（复用翾风回雪/odette 的同款远程判定与免伤）
-            // + 隐身 1s + 抗性提升 5（5s）+ 身边闪现墨绿/绿/深绿蝶光粒子
+            // 吻痕窥梦梦魇生花：同样闪避远程攻击 —— **直接调用上面同一个方法**（不复制粘贴）
+            boolean hasZankouDream = state.hasSpecialEffect(ModSpecialEffects.ZANKOU_SE40.getId())
+                    && SpecialEffect.isEffective(ModSpecialEffects.ZANKOU_SE40.getId(), player.experienceLevel);
+            if (hasZankouDream && dodgeRangedDamage(event, player)) return;
+
+            // 银簪·离魂烟暖笛烟化蝶舞：远程免疫 —— **同样复用 dodgeRangedDamage**，只是额外加了抗性提升 5 与蝶光粒子
             boolean hasSilverPinMoth = state.hasSpecialEffect(ModSpecialEffects.SILVER_PIN_MOTH_EFFECT.getId())
                     && SpecialEffect.isEffective(ModSpecialEffects.SILVER_PIN_MOTH_EFFECT.getId(), player.experienceLevel);
-            if (hasSilverPinMoth && isRangedDamage(event.getSource(), player)) {
-                event.setCanceled(true);
-                player.invulnerableTime = 20;
-                player.addEffect(new MobEffectInstance(MobEffects.INVISIBILITY, 20, 0));
+            if (hasSilverPinMoth && dodgeRangedDamage(event, player)) {
                 player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 100, 4)); // 抗性提升5，5秒
                 if (player.level() instanceof ServerLevel sl) {
                     DustParticleOptions deep = new DustParticleOptions(new Vector3f(0.16f, 0.42f, 0.22f), 0.8f);
@@ -1384,24 +1595,121 @@ public class SkydeitySlash {
                 return;
             }
 
+            // ===== 致死免疫（免死）=====
+            // LivingDamageEvent 在 actuallyHurt 里是「扣血之前」触发的（已反编译确认），
+            // 取消它会把本次伤害量置 0 → 血量根本不会掉。所以这里的拦截本身是对的。
             if (event.getAmount() < player.getHealth() + player.getAbsorptionAmount()) return;
-            boolean hasSinnerDance = state.hasSpecialEffect(ModSpecialEffects.SINNER_DANCE_EFFECT.getId())
-                    && SpecialEffect.isEffective(ModSpecialEffects.SINNER_DANCE_EFFECT.getId(), player.experienceLevel);
-            boolean hasButterflyBlaze = state.hasSpecialEffect(ModSpecialEffects.BUTTERFLY_BLAZE_EFFECT.getId())
-                    && SpecialEffect.isEffective(ModSpecialEffects.BUTTERFLY_BLAZE_EFFECT.getId(), player.experienceLevel);
-            boolean hasJoySorrowOmen = state.hasSpecialEffect(ModSpecialEffects.JOY_SORROW_OMEN_EFFECT.getId())
-                    && SpecialEffect.isEffective(ModSpecialEffects.JOY_SORROW_OMEN_EFFECT.getId(), player.experienceLevel);
-            boolean hasFluteSoul = state.hasSpecialEffect(ModSpecialEffects.FLUTE_SOUL_EFFECT.getId())
-                    && SpecialEffect.isEffective(ModSpecialEffects.FLUTE_SOUL_EFFECT.getId(), player.experienceLevel);
-            boolean hasHualanYunyi = state.hasSpecialEffect(ModSpecialEffects.HUALAN_YUNYI_EFFECT.getId())
-                    && SpecialEffect.isEffective(ModSpecialEffects.HUALAN_YUNYI_EFFECT.getId(), player.experienceLevel);
-            boolean hasIroiFuture = state.hasSpecialEffect(ModSpecialEffects.IROI_SE40.getId())
-                    && SpecialEffect.isEffective(ModSpecialEffects.IROI_SE40.getId(), player.experienceLevel);
-            if (!hasSinnerDance && !hasButterflyBlaze && !hasJoySorrowOmen && !hasFluteSoul && !hasHualanYunyi && !hasIroiFuture) return;
+            if (applyDeathWard(player)) {
+                event.setCanceled(true);
+            }
+        }
+
+        // ==================== 致死免疫（免死）====================
+
+        /** 具备「致死免疫」的全部 SE（等级需求由 SE 自身决定：joy_sorrow_omen 30 / iroi_se40 40 / hualan_yunyi 50 / flute_soul 80） */
+        private static final List<RegistryObject<SpecialEffect>> DEATH_WARDS = List.of(
+                ModSpecialEffects.SINNER_DANCE_EFFECT,
+                ModSpecialEffects.BUTTERFLY_BLAZE_EFFECT,
+                ModSpecialEffects.JOY_SORROW_OMEN_EFFECT,
+                ModSpecialEffects.FLUTE_SOUL_EFFECT,
+                ModSpecialEffects.HUALAN_YUNYI_EFFECT,
+                ModSpecialEffects.IROI_SE40);
+
+        /** 免死「代价」（扣级 + 粒子）的最小间隔 tick：免死本身每次都生效，只是代价不重复刷屏 */
+        private static final int DEATH_WARD_COST_COOLDOWN = 10;
+        /** 兜底免死时补回的血量（占最大生命的比例，最少 1 点）——死亡流程里血量已见底，必须补回正数 */
+        private static final float DEATH_WARD_REVIVE_RATIO = 0.2f;
+        /** 每名玩家上次结算免死代价的 tick */
+        private static final Map<UUID, Long> DEATH_WARD_LAST_COST = new HashMap<>();
+
+        /**
+         * 玩家手上（主手<b>或副手</b>）是否有该免死 SE 且当前等级满足其需求。
+         * 原实现只查主手 —— 副手持刀、或主手拿了别的武器/工具时，免死会完全不生效。
+         */
+        private static boolean hasDeathWard(Player player, RegistryObject<SpecialEffect> se) {
+            ResourceLocation id = se.getId();
+            for (ItemStack held : new ItemStack[]{player.getMainHandItem(), player.getOffhandItem()}) {
+                ISlashBladeState heldState = held.getCapability(CapabilitySlashBlade.BLADESTATE, null).orElse(null);
+                if (heldState != null && heldState.hasSpecialEffect(id)
+                        && SpecialEffect.isEffective(id, player.experienceLevel)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /** 是否有任意一个生效的免死 SE（主手/副手任一即可） */
+        private static boolean hasAnyDeathWard(Player player) {
+            for (RegistryObject<SpecialEffect> se : DEATH_WARDS) {
+                if (hasDeathWard(player, se)) return true;
+            }
+            return false;
+        }
+
+        /**
+         * 免死判定 + 结算：返回 true 表示本次致死被免掉（调用方负责取消伤害/死亡事件）。
+         * 代价与粒子最多每 {@link #DEATH_WARD_COST_COOLDOWN} tick 结算一次，避免连续致死把等级瞬间扣光。
+         */
+        private static boolean applyDeathWard(Player player) {
+            if (!hasAnyDeathWard(player)) return false;
+            player.invulnerableTime = 20;
+
+            long now = player.level().getGameTime();
+            Long last = DEATH_WARD_LAST_COST.get(player.getUUID());
+            if (last != null && now - last < DEATH_WARD_COST_COOLDOWN) return true;
+            DEATH_WARD_LAST_COST.put(player.getUUID(), now);
+
+            drainDeathWardCost(player);
+            playDeathWardEffects(player);
+            return true;
+        }
+
+        /**
+         * 免死代价：扣经验等级（原本固定扣 10 级）。
+         * <b>绝不把等级扣到该 SE 的需求线以下</b> —— 原实现硬扣 10 级，flute_soul(需 80) 会掉到 70、
+         * hualan_yunyi(50→40)、iroi_se40(40→30)、joy_sorrow_omen(30→20) 全部当场失效，
+         * 于是「免死」变成一次性的、下一次致死就被杀死。这是本次修复的核心。
+         */
+        private static void drainDeathWardCost(Player player) {
+            int cur = player.experienceLevel;
+            int drain = Math.min(10, Math.max(0, cur));
+            for (RegistryObject<SpecialEffect> se : DEATH_WARDS) {
+                if (!hasDeathWard(player, se)) continue;
+                int req = 0;
+                try {
+                    req = SpecialEffect.getRequestLevel(se.getId());
+                } catch (Exception ignored) {
+                    // 极端情况下（未注册等）不设限
+                }
+                drain = Math.min(drain, Math.max(0, cur - req));
+            }
+            if (drain > 0) player.giveExperienceLevels(-drain);
+        }
+
+        /**
+         * 免死兜底：拦截**不经过致死伤害判定**就进入死亡流程的情况（其它 mod 直接 die()/setHealth(0)、
+         * 部分环境死亡、指令等）。die() 的第一句就是 ForgeHooks.onLivingDeath，取消它即不会死亡。
+         */
+        public static void onLivingDeath(LivingDeathEvent event) {
+            if (!(event.getEntity() instanceof Player player)) return;
+            if (player.level().isClientSide) return;
+            if (!applyDeathWard(player)) return;
 
             event.setCanceled(true);
-            player.giveExperienceLevels(-10);
-            player.invulnerableTime = 20;
+            // 能走到这里说明血量已经见底，必须补回正数；否则 isDeadOrDying() 恒为 true，会被反复判死、无法正常受击
+            player.setHealth(Math.min(player.getMaxHealth(),
+                    Math.max(1.0f, player.getMaxHealth() * DEATH_WARD_REVIVE_RATIO)));
+            player.clearFire();
+        }
+
+        /** 免死触发时的表现：各 SE 各自的粒子与附加效果 */
+        private static void playDeathWardEffects(Player player) {
+            boolean hasSinnerDance = hasDeathWard(player, ModSpecialEffects.SINNER_DANCE_EFFECT);
+            boolean hasButterflyBlaze = hasDeathWard(player, ModSpecialEffects.BUTTERFLY_BLAZE_EFFECT);
+            boolean hasJoySorrowOmen = hasDeathWard(player, ModSpecialEffects.JOY_SORROW_OMEN_EFFECT);
+            boolean hasFluteSoul = hasDeathWard(player, ModSpecialEffects.FLUTE_SOUL_EFFECT);
+            boolean hasHualanYunyi = hasDeathWard(player, ModSpecialEffects.HUALAN_YUNYI_EFFECT);
+            boolean hasIroiFuture = hasDeathWard(player, ModSpecialEffects.IROI_SE40);
 
             if (hasIroiFuture) {
                 // 未来自我连续性假设（iroi）：免死时周身喷发一圈粉紫粒子（亮中心、四周渐淡）
@@ -1591,6 +1899,22 @@ public class SkydeitySlash {
             }
         }
 
+        /**
+         * 「远程闪避」的公共实现 —— 原本是 odette·翾风回雪里内联的那套，现在抽出来供多个 SE 共用
+         * （翾风回雪 / 银簪·离魂烟暖笛烟化蝶舞 / 吻痕窥梦梦魇生花，调用方只负责判断 SE 是否生效）。
+         * 内容与原来完全一致：取消本次伤害 + 1s 无敌 + 1s 隐身 + 白灰烟花爆开。
+         *
+         * @return 是否确实闪避了（不是远程攻击则返回 false，调用方继续往下走）
+         */
+        private static boolean dodgeRangedDamage(LivingDamageEvent event, Player player) {
+            if (!isRangedDamage(event.getSource(), player)) return false;
+            event.setCanceled(true);
+            player.invulnerableTime = 20;
+            player.addEffect(new MobEffectInstance(MobEffects.INVISIBILITY, 20, 0));
+            spawnFirework(player, new Vector3f(1.0f, 1.0f, 1.0f), new Vector3f(0.85f, 0.85f, 0.85f));
+            return true;
+        }
+
         /** 判断是否为远程伤害（弓箭 / 魔法 / 火球等，或攻击者距离 5 格以上） */
         private static boolean isRangedDamage(DamageSource source, Player player) {
             if (source.is(DamageTypes.ARROW)
@@ -1623,10 +1947,6 @@ public class SkydeitySlash {
         /** int RGB → 0~1 的 Vector3f（用于 Dust 粒子上色） */
         private static Vector3f rgbVec(int rgb) {
             return new Vector3f(((rgb >> 16) & 0xFF) / 255f, ((rgb >> 8) & 0xFF) / 255f, (rgb & 0xFF) / 255f);
-        }
-
-        private static Vector3f lerpV(Vector3f a, Vector3f b, float t) {
-            return new Vector3f(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t);
         }
 
         /** 柔光凝露梦湖起波：每次命中只召唤一条斜向的星形电火（ELECTRIC_SPARK），从目标斜上方斜插向头顶 */
@@ -1873,6 +2193,14 @@ public class SkydeitySlash {
                 GONGSUN_LAYERS.remove(player.getUUID());
             }
 
+            // 花开见血血染双瞳：不手持带该 SE 的刀时清空蓄势次数
+            boolean hasZankouBloomInHand = state != null
+                    && state.hasSpecialEffect(ModSpecialEffects.ZANKOU_SE50.getId());
+            if (!hasZankouBloomInHand) {
+                ZANKOU_BLOOM_CHARGES.remove(player.getUUID());
+                ZANKOU_BLOOM_DEADLINE.remove(player.getUUID());
+            }
+
             // 雨间蝶舞伞犹温，江清晓荷月近人：背包（含主/副手）持有任一把带该 SE 的刀时
             // 给予 +52 生命上限 / +52 护甲，并持续增加攻击力（每 20 tick +0.1，上限 +10）
             boolean hasRain = hasEffectiveRain(player, player.getMainHandItem())
@@ -2016,39 +2344,56 @@ public class SkydeitySlash {
             return SE_DESC_LEVEL.get(bestDesc);
         }
 
-        /** 特效查看命令：/skydeityslash effect enlightenment | narukami */
+        /** 特效查看命令：/skydeityslash effect ink_fox | tianxing */
         public static void onRegisterCommands(net.minecraftforge.event.RegisterCommandsEvent event) {
             var root = event.getDispatcher().register(
                     net.minecraft.commands.Commands.literal("skydeityslash")
                             .then(net.minecraft.commands.Commands.literal("effect")
-                                    .then(net.minecraft.commands.Commands.literal("enlightenment")
-                                            .executes(ctx -> spawnEffect(ctx.getSource(), "enlightenment")))
-                                    .then(net.minecraft.commands.Commands.literal("narukami")
-                                            .executes(ctx -> spawnEffect(ctx.getSource(), "narukami")))
                                     .then(net.minecraft.commands.Commands.literal("ink_fox")
                                             .executes(ctx -> spawnEffect(ctx.getSource(), "ink_fox")))
                                     .then(net.minecraft.commands.Commands.literal("tianxing")
-                                            .executes(ctx -> spawnEffect(ctx.getSource(), "tianxing")))));
+                                            .executes(ctx -> spawnEffect(ctx.getSource(), "tianxing"))))
+                            .then(net.minecraft.commands.Commands.literal("preview")
+                                    .then(net.minecraft.commands.Commands.literal("naru")
+                                            .then(net.minecraft.commands.Commands.argument("stage",
+                                                    com.mojang.brigadier.arguments.IntegerArgumentType.integer(0, 5))
+                                                    .executes(ctx -> spawnPreview(ctx.getSource(), "naru",
+                                                            com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "stage")))))
+                                    .then(net.minecraft.commands.Commands.literal("enlight")
+                                            .then(net.minecraft.commands.Commands.argument("sub",
+                                                    com.mojang.brigadier.arguments.IntegerArgumentType.integer(0, 8))
+                                                    .executes(ctx -> spawnPreview(ctx.getSource(), "enlight",
+                                                            com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "sub")))))));
         }
 
         private static int spawnEffect(net.minecraft.commands.CommandSourceStack src, String kind) {
             if (!(src.getEntity() instanceof ServerPlayer player)) return 0;
             Level level = player.level();
             Vec3 center = player.position().add(player.getLookAngle().x * 6.0, 0, player.getLookAngle().z * 6.0);
-            if ("narukami".equals(kind)) {
-                Vec3 look = player.getLookAngle();
-                Vec3 flat = new Vec3(look.x, 0, look.z);
-                Vec3 dir = flat.lengthSqr() < 1e-6 ? new Vec3(0, 0, 1) : flat.normalize();
-                com.example.skydeityslash.entity.EntitySevenThunders21.spawn(level, player,
-                        center.add(0, 1.0, 0), dir, 25.0f);
-            } else if ("ink_fox".equals(kind)) {
+            if ("ink_fox".equals(kind)) {
                 com.example.skydeityslash.entity.EntityInkFoxField.spawn(level, player, center, 25.0f);
             } else if ("tianxing".equals(kind)) {
                 // 天星：地面法阵从小到大 → 天空出现 array_sky → 天星斜落
                 com.example.skydeityslash.entity.EntityTianxingFaz.spawnGround(level, center, 5.0f);
-            } else {
-                com.example.skydeityslash.entity.EntityFoxEnlightenedField.spawn(level, player, center, 0.0f);
+            } else if ("sword".equals(kind)) {
+                // 全息剑：在身前上方 7 格生成一张剑的全息贴图，竖直下落 7 格后消散
+                com.example.skydeityslash.entity.EntitySwordHologram.spawn(level, center);
+            } else if ("ghostbutterfly".equals(kind)) {
+                // 幽灵蝶：在身前空中撒 5 只（一对左右对称 + 一只缓慢自转 + 两只随机散布）
+                com.example.skydeityslash.entity.EntityGhostButterfly.spawnCluster(
+                        level, center.add(0, 0.6, 0), player.getLookAngle());
             }
+            return 1;
+        }
+
+        /** 子特效预览：/skydeityslash preview naru <0-5> | enlight <0-8> —— 逐个触发单个子特效便于测试取舍 */
+        private static int spawnPreview(net.minecraft.commands.CommandSourceStack src, String group, int id) {
+            if (!(src.getEntity() instanceof ServerPlayer player)) return 0;
+            Level level = player.level();
+            Vec3 center = player.position().add(player.getLookAngle().x * 6.0, 0, player.getLookAngle().z * 6.0);
+            int type = "enlight".equalsIgnoreCase(group) ? 1 : 0;
+            com.example.skydeityslash.entity.EntityEffectPreview.spawn(level, center.add(0, .5, 0),
+                    player.getLookAngle(), type, id);
             return 1;
         }
     }

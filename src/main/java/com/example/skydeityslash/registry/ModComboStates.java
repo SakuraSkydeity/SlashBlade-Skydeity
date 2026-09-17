@@ -1,14 +1,13 @@
 package com.example.skydeityslash.registry;
 
 import com.example.skydeityslash.SkydeitySlash;
+import com.example.skydeityslash.ability.ChikuiFentian;
 import com.example.skydeityslash.ability.ColumbinaArt;
 import com.example.skydeityslash.ability.FontaineCarnival;
 import com.example.skydeityslash.ability.GoldenBranchArt;
 import com.example.skydeityslash.ability.IroiXiangyangArt;
 import com.example.skydeityslash.ability.LiRenLei;
 import com.example.skydeityslash.ability.LiyueButterfly;
-import com.example.skydeityslash.ability.NarukamiArt;
-import com.example.skydeityslash.ability.SwordEnlightenmentArt;
 import com.example.skydeityslash.ability.XuanfengSlashArt;
 import mods.flammpfeil.slashblade.SlashBlade;
 import mods.flammpfeil.slashblade.init.DefaultResources;
@@ -85,36 +84,6 @@ public class ModComboStates {
                                     .build())
                             ::build);
 
-    /** 「剑体始觉」：纯特效查看 SA，在玩家前方释放金白结界 */
-    public static final RegistryObject<ComboState> SWORD_ENLIGHTENMENT_COMBO =
-            COMBO_STATES.register("sword_enlightenment_combo",
-                    ComboState.Builder.newInstance()
-                            .startAndEnd(400, 459)
-                            .priority(100)
-                            .motionLoc(DefaultResources.ExMotionLocation)
-                            .next(ComboState.TimeoutNext.buildFromFrame(15, e -> SlashBlade.prefix("none")))
-                            .nextOfTimeout(e -> SlashBlade.prefix("none"))
-                            .releaseAction((player, chargeTicks) -> SlashArts.ArtsType.Success)
-                            .addTickAction(ComboState.TimeLineTickAction.getBuilder()
-                                    .put(2, SwordEnlightenmentArt::doEnlightenment)
-                                    .build())
-                            ::build);
-
-    /** 「鸣雷神」：在玩家前方释放紫霆雷狱结界 */
-    public static final RegistryObject<ComboState> NARUKAMI_COMBO =
-            COMBO_STATES.register("narukami_combo",
-                    ComboState.Builder.newInstance()
-                            .startAndEnd(400, 459)
-                            .priority(100)
-                            .motionLoc(DefaultResources.ExMotionLocation)
-                            .next(ComboState.TimeoutNext.buildFromFrame(15, e -> SlashBlade.prefix("none")))
-                            .nextOfTimeout(e -> SlashBlade.prefix("none"))
-                            .releaseAction((player, chargeTicks) -> SlashArts.ArtsType.Success)
-                            .addTickAction(ComboState.TimeLineTickAction.getBuilder()
-                                    .put(2, NarukamiArt::doNarukami)
-                                    .build())
-                            ::build);
-
     /** 「诺德卡莱」霜结的誓金枝：朝准星方向降下金色誓金枝球，落地金黄/橙黄爆炸 */
     public static final RegistryObject<ComboState> GOLDEN_BRANCH_COMBO =
             COMBO_STATES.register("golden_branch_combo",
@@ -157,6 +126,25 @@ public class ModComboStates {
                             .releaseAction((player, chargeTicks) -> SlashArts.ArtsType.Success)
                             .addTickAction(ComboState.TimeLineTickAction.getBuilder()
                                     .put(2, IroiXiangyangArt::doIroiXiangyang)
+                                    .build())
+                            ::build);
+
+    /**
+     * 「赤葵」焚天烬灭舞：zankou 专属 SA（`ability/ChikuiFentian`）。
+     * 效果：① 朝面朝方向 **25 格 × 宽 3 格**（上下 +3 / −1）方框内每个生物各 **520 真伤**；
+     *       ② 一条暗红摆线 + 密集火焰（`EntityChikuiArc`，纯几何线条）；③ 身边 6 把暗红幻影剑依次射出（纯视觉，damage 0）。
+     */
+    public static final RegistryObject<ComboState> CHIKUI_COMBO =
+            COMBO_STATES.register("chikui_combo",
+                    ComboState.Builder.newInstance()
+                            .startAndEnd(400, 459)
+                            .priority(100)
+                            .motionLoc(DefaultResources.ExMotionLocation)
+                            .next(ComboState.TimeoutNext.buildFromFrame(15, e -> SlashBlade.prefix("none")))
+                            .nextOfTimeout(e -> SlashBlade.prefix("none"))
+                            .releaseAction((player, chargeTicks) -> SlashArts.ArtsType.Success)
+                            .addTickAction(ComboState.TimeLineTickAction.getBuilder()
+                                    .put(2, ChikuiFentian::doChikui)
                                     .build())
                             ::build);
 }

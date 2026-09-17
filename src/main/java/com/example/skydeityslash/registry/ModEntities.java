@@ -1,19 +1,19 @@
 package com.example.skydeityslash.registry;
 
 import com.example.skydeityslash.SkydeitySlash;
-import com.example.skydeityslash.entity.EntityFontaineTideSword;
-import com.example.skydeityslash.entity.EntityFontaineWave;
-import com.example.skydeityslash.entity.EntityFoxEnlightenedField;
+import com.example.skydeityslash.entity.EntityBloomSlash;
+import com.example.skydeityslash.entity.EntityChikuiArc;
+import com.example.skydeityslash.entity.EntityCutLines;
+import com.example.skydeityslash.entity.EntityGhostButterfly;
 import com.example.skydeityslash.entity.EntityGoldenBranchBall;
-import com.example.skydeityslash.entity.EntityInkBloom;
-import com.example.skydeityslash.entity.EntityInkButterfly;
 import com.example.skydeityslash.entity.EntityInkFoxField;
 import com.example.skydeityslash.entity.EntityInkSwarm;
 import com.example.skydeityslash.entity.EntityRainUmbrella;
-import com.example.skydeityslash.entity.EntitySevenThunders21;
-import com.example.skydeityslash.entity.EntitySmokeShadow;
-import com.example.skydeityslash.entity.EntityTideSword;
+import com.example.skydeityslash.entity.EntitySakuraBloom;
+import com.example.skydeityslash.entity.EntitySwordHologram;
 import com.example.skydeityslash.entity.EntityTianxingFaz;
+import com.example.skydeityslash.entity.EntityXuanfengRing;
+import com.example.skydeityslash.entity.EntityEffectPreview;
 import com.example.skydeityslash.entity.EntityTianxingStone;
 import com.example.skydeityslash.entity.IroiNpcEntity;
 import com.example.skydeityslash.entity.ColumbinaNpcEntity;
@@ -34,42 +34,6 @@ public class ModEntities {
     public static final DeferredRegister<EntityType<?>> ENTITIES =
             DeferredRegister.create(Registries.ENTITY_TYPE, SkydeitySlash.MODID);
 
-    /** 潮汐幻影剑（下落更慢） */
-    public static final RegistryObject<EntityType<EntityTideSword>> TIDE_SWORD =
-            ENTITIES.register("tide_sword", () -> EntityType.Builder
-                    .<EntityTideSword>of(EntityTideSword::new, MobCategory.MISC)
-                    .sized(0.5f, 0.5f)
-                    .setTrackingRange(4)
-                    .setUpdateInterval(20)
-                    .build(SkydeitySlash.MODID + ":tide_sword"));
-
-    /** 枫丹剑气（吸血刀波） */
-    public static final RegistryObject<EntityType<EntityFontaineWave>> FONTAINE_WAVE =
-            ENTITIES.register("fontaine_wave", () -> EntityType.Builder
-                    .<EntityFontaineWave>of(EntityFontaineWave::new, MobCategory.MISC)
-                    .sized(0.5f, 0.5f)
-                    .setTrackingRange(4)
-                    .setUpdateInterval(20)
-                    .build(SkydeitySlash.MODID + ":fontaine_wave"));
-
-    /** 枫丹深蓝幻影剑（吸血） */
-    public static final RegistryObject<EntityType<EntityFontaineTideSword>> FONTAINE_TIDE_SWORD =
-            ENTITIES.register("fontaine_tide_sword", () -> EntityType.Builder
-                    .<EntityFontaineTideSword>of(EntityFontaineTideSword::new, MobCategory.MISC)
-                    .sized(0.5f, 0.5f)
-                    .setTrackingRange(4)
-                    .setUpdateInterval(20)
-                    .build(SkydeitySlash.MODID + ":fontaine_tide_sword"));
-
-    /** 狐剑技组合结界（剑体始觉） */
-    public static final RegistryObject<EntityType<EntityFoxEnlightenedField>> FOX_FIELD =
-            ENTITIES.register("fox_field", () -> EntityType.Builder
-                    .<EntityFoxEnlightenedField>of(EntityFoxEnlightenedField::new, MobCategory.MISC)
-                    .sized(0.2f, 0.2f)
-                    .setTrackingRange(6)
-                    .setUpdateInterval(2)
-                    .build(SkydeitySlash.MODID + ":fox_field"));
-
     /** 钤印伞特效主机（纯视觉，无碰撞无 AI） */
     public static final RegistryObject<EntityType<EntityRainUmbrella>> UMBRELLA =
             ENTITIES.register("umbrella", () -> EntityType.Builder
@@ -78,42 +42,6 @@ public class ModEntities {
                     .setTrackingRange(8)
                     .setUpdateInterval(1)
                     .build(SkydeitySlash.MODID + ":umbrella"));
-
-    /** 鸣雷神 紫霆雷狱结界（宁雷神 SA 特效） */
-    public static final RegistryObject<EntityType<EntitySevenThunders21>> SEVEN_THUNDERS =
-            ENTITIES.register("seven_thunders", () -> EntityType.Builder
-                    .<EntitySevenThunders21>of(EntitySevenThunders21::new, MobCategory.MISC)
-                    .sized(0.2f, 0.2f)
-                    .setTrackingRange(10)
-                    .setUpdateInterval(1)
-                    .build(SkydeitySlash.MODID + ":seven_thunders"));
-
-    /** 雨间蝶舞·水墨蝶（纯视觉粒子实体，无渲染，trackingRange 0） */
-    public static final RegistryObject<EntityType<EntityInkButterfly>> INK_BUTTERFLY =
-            ENTITIES.register("ink_butterfly", () -> EntityType.Builder
-                    .<EntityInkButterfly>of(EntityInkButterfly::new, MobCategory.MISC)
-                    .sized(0.1f, 0.1f)
-                    .setTrackingRange(0)
-                    .setUpdateInterval(1)
-                    .build(SkydeitySlash.MODID + ":ink_butterfly"));
-
-    /** 笛烟·墨芙蓉（纯视觉粒子实体，无渲染，trackingRange 0） */
-    public static final RegistryObject<EntityType<EntityInkBloom>> INK_BLOOM =
-            ENTITIES.register("ink_bloom", () -> EntityType.Builder
-                    .<EntityInkBloom>of(EntityInkBloom::new, MobCategory.MISC)
-                    .sized(0.1f, 0.1f)
-                    .setTrackingRange(0)
-                    .setUpdateInterval(1)
-                    .build(SkydeitySlash.MODID + ":ink_bloom"));
-
-    /** 一笛清影·水墨烟影（纯视觉粒子实体，无渲染，trackingRange 0） */
-    public static final RegistryObject<EntityType<EntitySmokeShadow>> SMOKE_SHADOW =
-            ENTITIES.register("smoke_shadow", () -> EntityType.Builder
-                    .<EntitySmokeShadow>of(EntitySmokeShadow::new, MobCategory.MISC)
-                    .sized(0.1f, 0.1f)
-                    .setTrackingRange(0)
-                    .setUpdateInterval(1)
-                    .build(SkydeitySlash.MODID + ":smoke_shadow"));
 
     /** 墨渊·蝶舞九天（sakurafox 新 SA 特效实体） */
     public static final RegistryObject<EntityType<EntityInkFoxField>> INK_FOX_FIELD =
@@ -213,4 +141,76 @@ public class ModEntities {
                     .setTrackingRange(32)
                     .setUpdateInterval(1)
                     .build(SkydeitySlash.MODID + ":tianxing_stone"));
+
+    /** 全息剑特效（纯视觉公告板贴图，自上方落下 7 格） */
+    public static final RegistryObject<EntityType<EntitySwordHologram>> SWORD_HOLOGRAM =
+            ENTITIES.register("sword_hologram", () -> EntityType.Builder
+                    .<EntitySwordHologram>of(EntitySwordHologram::new, MobCategory.MISC)
+                    .sized(0.5f, 0.5f)
+                    .setTrackingRange(64)
+                    .setUpdateInterval(1)
+                    .build(SkydeitySlash.MODID + ":sword_hologram"));
+
+    /** 幽灵蝶特效（很小的纯视觉公告板贴图，悬浮空中；/skydeityslash effect ghostbutterfly） */
+    public static final RegistryObject<EntityType<EntityGhostButterfly>> GHOST_BUTTERFLY =
+            ENTITIES.register("ghostbutterfly", () -> EntityType.Builder
+                    .<EntityGhostButterfly>of(EntityGhostButterfly::new, MobCategory.MISC)
+                    .sized(0.4f, 0.4f)
+                    .setTrackingRange(64)
+                    .setUpdateInterval(1)
+                    .build(SkydeitySlash.MODID + ":ghostbutterfly"));
+
+    /** 翾风回雪·白色动态圆环（纯视觉，环绕锁定目标/落点；客户端渲染白色轨道弧环+旋转环） */
+    public static final RegistryObject<EntityType<EntityXuanfengRing>> XUANFENG_RING =
+            ENTITIES.register("xuanfeng_ring", () -> EntityType.Builder
+                    .<EntityXuanfengRing>of(EntityXuanfengRing::new, MobCategory.MISC)
+                    .sized(0.2f, 0.2f)
+                    .setTrackingRange(10)
+                    .setUpdateInterval(1)
+                    .build(SkydeitySlash.MODID + ":xuanfeng_ring"));
+
+    /** 子特效预览（纯视觉，逐个触发 naru/enlightenment 的单个子特效便于测试取舍） */
+    public static final RegistryObject<EntityType<EntityEffectPreview>> EFFECT_PREVIEW =
+            ENTITIES.register("effect_preview", () -> EntityType.Builder
+                    .<EntityEffectPreview>of(EntityEffectPreview::new, MobCategory.MISC)
+                    .sized(0.2f, 0.2f)
+                    .setTrackingRange(64)
+                    .setUpdateInterval(1)
+                    .build(SkydeitySlash.MODID + ":effect_preview"));
+
+    /** 「赤葵」焚天烬灭舞的暗红摆线（纯视觉，一端固定在玩家身上做钟摆摆动；客户端按固定参数画连续线条） */
+    public static final RegistryObject<EntityType<EntityChikuiArc>> CHIKUI_ARC =
+            ENTITIES.register("chikui_arc", () -> EntityType.Builder
+                    .<EntityChikuiArc>of(EntityChikuiArc::new, MobCategory.MISC)
+                    .sized(0.2f, 0.2f)
+                    .setTrackingRange(32)
+                    .setUpdateInterval(1)
+                    .build(SkydeitySlash.MODID + ":chikui_arc"));
+
+    /** 「花开见血血染双瞳」的暗红刀痕（纯视觉，出现在命中目标身边；六条凌乱弧线，连续线条非粒子） */
+    public static final RegistryObject<EntityType<EntityBloomSlash>> BLOOM_SLASH =
+            ENTITIES.register("bloom_slash", () -> EntityType.Builder
+                    .<EntityBloomSlash>of(EntityBloomSlash::new, MobCategory.MISC)
+                    .sized(0.2f, 0.2f)
+                    .setTrackingRange(32)
+                    .setUpdateInterval(1)
+                    .build(SkydeitySlash.MODID + ":bloom_slash"));
+
+    /** 「瞳中深渊渊底之吻」的几何樱花（纯视觉，开在命中目标身上；5 片花瓣、连续几何非粒子） */
+    public static final RegistryObject<EntityType<EntitySakuraBloom>> SAKURA_BLOOM =
+            ENTITIES.register("sakura_bloom", () -> EntityType.Builder
+                    .<EntitySakuraBloom>of(EntitySakuraBloom::new, MobCategory.MISC)
+                    .sized(0.2f, 0.2f)
+                    .setTrackingRange(32)
+                    .setUpdateInterval(1)
+                    .build(SkydeitySlash.MODID + ":sakura_bloom"));
+
+    /** 「吻痕窥梦梦魇生花」的横切割刀痕（纯视觉，几道横着的细红圆柱同时划过目标） */
+    public static final RegistryObject<EntityType<EntityCutLines>> CUT_LINES =
+            ENTITIES.register("cut_lines", () -> EntityType.Builder
+                    .<EntityCutLines>of(EntityCutLines::new, MobCategory.MISC)
+                    .sized(0.2f, 0.2f)
+                    .setTrackingRange(32)
+                    .setUpdateInterval(1)
+                    .build(SkydeitySlash.MODID + ":cut_lines"));
 }

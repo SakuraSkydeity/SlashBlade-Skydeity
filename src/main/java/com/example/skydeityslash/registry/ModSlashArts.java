@@ -63,16 +63,6 @@ public class ModSlashArts {
                         }
                     });
 
-    /** 「剑体始觉」：特效查看 SA，释放后进入 sword_enlightenment_combo */
-    public static final RegistryObject<SlashArts> SWORD_ENLIGHTENMENT_SA =
-            SLASH_ARTS.register("sword_enlightenment",
-                    () -> new SlashArts(e -> ModComboStates.SWORD_ENLIGHTENMENT_COMBO.getId()));
-
-    /** 「鸣雷神」：紫霆雷狱 SA，释放后进入 narukami_combo */
-    public static final RegistryObject<SlashArts> NARUKAMI_SA =
-            SLASH_ARTS.register("narukami",
-                    () -> new SlashArts(e -> ModComboStates.NARUKAMI_COMBO.getId()));
-
     /** 「诺德卡莱」霜结的誓金枝：linnea 专属 SA，名字显示为渐变（浅蓝「诺德卡莱」+ 橙黄霜结的誓金枝），释放后进入 golden_branch_combo */
     public static final RegistryObject<SlashArts> GOLDEN_BRANCH_SA =
             SLASH_ARTS.register("golden_branch",
@@ -226,5 +216,27 @@ public class ModSlashArts {
     private static final int[] IROI_COLORS = {
             0xF7C030, 0xFACB4A, 0xFCDA60, 0xFFEA78,
             0xBA55D3, 0xC35EDB, 0xCC67E3, 0xD570EB, 0xDE79F2, 0xE782FA, 0xF08BFF, 0xE992FF, 0xE39BFF, 0xE2A5FF
+    };
+
+    /**
+     * 「赤葵」焚天烬灭舞：zankou 专属 SA，释放后进入 chikui_combo 连击状态，
+     * 特效 = 斩击真伤 + 暗红摆线（顶端立着密集火焰）+ 6 把幻影剑（`ability/ChikuiFentian`），
+     * 名字为渐变：「赤葵」#E40C4D 系 / 焚天烬灭舞 #710404 系。
+     */
+    public static final RegistryObject<SlashArts> CHIKUI_SA =
+            SLASH_ARTS.register("chikui_fentian",
+                    () -> new SlashArts(e -> ModComboStates.CHIKUI_COMBO.getId()) {
+                        @Override
+                        public Component getDescription() {
+                            return gradient(CHIKUI_CHARS, CHIKUI_COLORS);
+                        }
+                    });
+
+    private static final String CHIKUI_CHARS = "「赤葵」焚天烬灭舞";
+
+    /** 「赤葵」(#9B012F→#E40145，深绯→赤) 焚天烬灭舞(#710404→#873232，暗血红) */
+    private static final int[] CHIKUI_COLORS = {
+            0x9B012F, 0xB30137, 0xCC013E, 0xE40145,
+            0x710404, 0x761010, 0x7C1B1B, 0x812626, 0x873232
     };
 }

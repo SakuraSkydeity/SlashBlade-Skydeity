@@ -35,7 +35,8 @@ public class EnchantingApparatusBlock extends Block implements EntityBlock {
 
     public EnchantingApparatusBlock() {
         super(BlockBehaviour.Properties.of()
-                .strength(3.0f)
+                // 纯原版挖掘手感：不要求正确工具（i=30）→ 空手 3 秒、木镐 1.5 秒、更好的镐更快
+                .strength(2.0f)
                 .noOcclusion());
     }
 
@@ -99,18 +100,32 @@ public class EnchantingApparatusBlock extends Block implements EntityBlock {
         super.playerDestroy(level, player, pos, state, blockEntity, stack);
     }
 
-    /** 核心外观：更大的底盘 + 四角立柱 + 悬浮在空中的月晶核心（底座与核心之间留空，形成悬浮感） */
+    /** 核心外观：两格高（32px）。底座偏圆（切角八边形）+ 四根小柱子 + 悬浮月晶圆球。
+     *  0-2   第一层切角八边形，x/z 1..15，四角切 3 px
+     *  2-4   第二层切角八边形，x/z 2..14，四角切 3 px
+     *  4-5   符文盆，x/z 4..12，四角切 2 px（比原来小一圈）
+     *  4-10  四根 2x2 px 小柱子，立在外圈四边中点
+     *  10-21 空档（物品悬浮区，y≈15.5px）
+     *  21-31 月晶圆球（纯装饰，悬浮在外，不参与碰撞/选取）
+     */
     private static final VoxelShape SHAPE = net.minecraft.world.phys.shapes.Shapes.or(
-            box(1, 0, 1, 15, 3, 15),
-            box(2, 3, 2, 14, 4, 14),
-            box(3, 4, 3, 13, 5, 13),
-            box(2, 5, 2, 4, 7, 4),
-            box(12, 5, 2, 14, 7, 4),
-            box(2, 5, 12, 4, 7, 14),
-            box(12, 5, 12, 14, 7, 14),
-            box(6, 9, 6, 10, 10, 10),
-            box(5, 10, 5, 11, 14, 11),
-            box(6, 14, 6, 10, 15, 10));
+            // 第一层 0-2
+            box(1, 0, 4, 15, 2, 12),
+            box(4, 0, 1, 12, 2, 4),
+            box(4, 0, 12, 12, 2, 15),
+            // 第二层 2-4
+            box(2, 2, 5, 14, 4, 11),
+            box(5, 2, 2, 11, 4, 5),
+            box(5, 2, 11, 11, 4, 14),
+            // 符文盆 4-5
+            box(4, 4, 6, 12, 5, 10),
+            box(6, 4, 4, 10, 5, 6),
+            box(6, 4, 10, 10, 5, 12),
+            // 四根 2x2 px 小柱子 4-10
+            box(7, 4, 2, 9, 10, 4),
+            box(7, 4, 12, 9, 10, 14),
+            box(2, 4, 7, 4, 10, 9),
+            box(12, 4, 7, 14, 10, 9));
 
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext ctx) {

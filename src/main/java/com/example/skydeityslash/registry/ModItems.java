@@ -42,6 +42,10 @@ public class ModItems {
     public static final RegistryObject<Item> IMAGINE_IGNOT =
             ITEMS.register("imagine_ignot", () -> new Item(new Item.Properties()));
 
+    /** 赤葵锭（zankou 专属合成材料） */
+    public static final RegistryObject<Item> CHIKUI_IGNOT =
+            ITEMS.register("chikui_ignot", () -> new Item(new Item.Properties()));
+
     /** 新月之扇（右键传送彼岸维度） */
     public static final RegistryObject<Item> ANTIQUEFAN =
             ITEMS.register("antiquefan", AntiqueFanItem::new);

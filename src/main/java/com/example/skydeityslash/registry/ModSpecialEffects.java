@@ -11,6 +11,9 @@ import com.example.skydeityslash.specialeffect.PlumBlossomEffect;
 import com.example.skydeityslash.specialeffect.SinnerDanceEffect;
 import com.example.skydeityslash.specialeffect.SkywardVisageEffect;
 import com.example.skydeityslash.specialeffect.XuanfengHuixueEffect;
+import com.example.skydeityslash.specialeffect.ZankouAbyssEffect;
+import com.example.skydeityslash.specialeffect.ZankouBloomEffect;
+import com.example.skydeityslash.specialeffect.ZankouDreamEffect;
 import mods.flammpfeil.slashblade.registry.specialeffects.SpecialEffect;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
@@ -132,6 +135,30 @@ public class ModSpecialEffects {
     /** 「妄想彼端的森林萤火」：需求等级 50，iroi 专属（名称纯粉紫原版色、不渐变） */
     public static final RegistryObject<SpecialEffect> IROI_SE50 =
             SPECIAL_EFFECTS.register("iroi_se50", () -> pinkPurpleSE(50, "妄想彼端的森林萤火"));
+
+    /** 「瞳中深渊渊底之吻」：需求等级 30，zankou 专属 —— 每次命中回 2 血；每 3 次命中绽开几何樱花 + 额外 52 真伤 */
+    public static final RegistryObject<SpecialEffect> ZANKOU_SE30 =
+            SPECIAL_EFFECTS.register("zankou_se30", ZankouAbyssEffect::new);
+
+    /** 「吻痕窥梦梦魇生花」：需求等级 40，zankou 专属 —— 远程闪避（复用翾风回雪那套）；每 7 次命中横切割刀痕 + 目标缓慢 10 */
+    public static final RegistryObject<SpecialEffect> ZANKOU_SE40 =
+            SPECIAL_EFFECTS.register("zankou_se40", ZankouDreamEffect::new);
+
+    /** 「花开见血血染双瞳」：需求等级 50，zankou 专属 —— 按特殊行动键蓄势，之后 3 次攻击各额外 52 真伤（名称纯原版暗红、不渐变） */
+    public static final RegistryObject<SpecialEffect> ZANKOU_SE50 =
+            SPECIAL_EFFECTS.register("zankou_se50", ZankouBloomEffect::new);
+
+    /** 等级限制 + 纯原版暗红色（§4 = #AA0000、不渐变）名字的装饰性 SE */
+    private static SpecialEffect darkRedSE(int level, String text) {
+        return new SpecialEffect(level) {
+            @Override
+            public Component getDescription() {
+                int col = 0xAA0000; // MC 原版 dark_red
+                return Component.literal(text)
+                        .withStyle(st -> st.withColor(TextColor.fromRgb(col)).withItalic(false).withBold(false));
+            }
+        };
+    }
 
     /** 等级限制 + 纯粉紫色（MC 原版 light_purple、不渐变）名字的装饰性 SE */
     private static SpecialEffect pinkPurpleSE(int level, String text) {

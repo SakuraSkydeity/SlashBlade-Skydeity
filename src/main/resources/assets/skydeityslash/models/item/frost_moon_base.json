@@ -1,3 +1,141 @@
 {
-  "parent": "skydeityslash:block/frost_moon_base"
+  "parent": "skydeityslash:block/frost_moon_base",
+  "display": {
+    "gui": {
+      "rotation": [
+        30,
+        225,
+        0
+      ],
+      "translation": [
+        0.4626,
+        -2.5149,
+        0.4626
+      ],
+      "scale": [
+        0.4968,
+        0.4968,
+        0.4968
+      ]
+    },
+    "ground": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0.0,
+        2.1098,
+        0.0
+      ],
+      "scale": [
+        0.1187,
+        0.1187,
+        0.1187
+      ]
+    },
+    "fixed": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0.0,
+        -1.7805,
+        0.0
+      ],
+      "scale": [
+        0.2374,
+        0.2374,
+        0.2374
+      ]
+    },
+    "thirdperson_righthand": {
+      "rotation": [
+        75,
+        45,
+        0
+      ],
+      "translation": [
+        -0.9674,
+        2.3615,
+        -0.9674
+      ],
+      "scale": [
+        0.3027,
+        0.3027,
+        0.3027
+      ]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [
+        75,
+        45,
+        0
+      ],
+      "translation": [
+        -0.9674,
+        2.3615,
+        -0.9674
+      ],
+      "scale": [
+        0.3027,
+        0.3027,
+        0.3027
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        0,
+        45,
+        0
+      ],
+      "translation": [
+        0.0,
+        -2.0145,
+        0.0
+      ],
+      "scale": [
+        0.2686,
+        0.2686,
+        0.2686
+      ]
+    },
+    "firstperson_lefthand": {
+      "rotation": [
+        0,
+        225,
+        0
+      ],
+      "translation": [
+        0.0,
+        -2.0145,
+        0.0
+      ],
+      "scale": [
+        0.2686,
+        0.2686,
+        0.2686
+      ]
+    },
+    "head": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0.0,
+        -3.561,
+        0.0
+      ],
+      "scale": [
+        0.4748,
+        0.4748,
+        0.4748
+      ]
+    }
+  }
 }

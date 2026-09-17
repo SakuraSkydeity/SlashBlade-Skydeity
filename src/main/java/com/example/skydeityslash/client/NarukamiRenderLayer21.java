@@ -31,6 +31,38 @@ final class NarukamiRenderLayer21 {
         residue(m, b, p, frame, owner, q, camera, seed);
     }
 
+    /** 单段预览：只渲染某一阶段的自身，跨其所需全部材质层合成进同一 buffer（加法混合，等价完整效果合成）。 */
+    static void renderStage(Matrix4f m, VertexConsumer b, int stage, float frame, Vec3 owner, Vec3 target,
+                            Basis q, Vec3 camera, long seed) {
+        switch (stage) {
+            case 0:
+                opening(m, b, Material.COMPOSITE, frame, owner, q, camera, seed);
+                opening(m, b, Material.ENERGY, frame, owner, q, camera, seed);
+                opening(m, b, Material.LIGHTNING, frame, owner, q, camera, seed);
+                break;
+            case 1:
+                for (Material p : new Material[]{Material.CROSS, Material.COMPOSITE, Material.ENERGY, Material.LIGHTNING})
+                    crossSequence(m, b, p, frame, owner, target, q, camera, seed);
+                break;
+            case 2:
+                for (Material p : new Material[]{Material.CROSS, Material.COMPOSITE, Material.ENERGY, Material.LIGHTNING})
+                    cage(m, b, p, frame, owner, q, camera, seed);
+                break;
+            case 3:
+                for (Material p : new Material[]{Material.COMPOSITE, Material.ENERGY, Material.LIGHTNING})
+                    groundField(m, b, p, frame, owner, target, q, camera, seed);
+                break;
+            case 4:
+                accents(m, b, Material.COMPOSITE, frame, owner, target, q, camera, seed);
+                accents(m, b, Material.PARTICLE, frame, owner, target, q, camera, seed);
+                break;
+            default:
+                residue(m, b, Material.COMPOSITE, frame, owner, q, camera, seed);
+                residue(m, b, Material.PARTICLE, frame, owner, q, camera, seed);
+                break;
+        }
+    }
+
     static Basis basis(Vec3 direction) {
         Vec3 f = new Vec3(direction.x, 0, direction.z);
         if (f.lengthSqr() < 1E-8) f = new Vec3(0, 0, 1); else f = f.normalize();

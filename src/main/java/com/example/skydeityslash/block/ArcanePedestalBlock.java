@@ -39,7 +39,8 @@ public class ArcanePedestalBlock extends Block implements EntityBlock {
 
     public ArcanePedestalBlock() {
         super(Properties.of()
-                .instabreak()
+                // 纯原版挖掘手感：不要求正确工具（i=30）→ 空手 3 秒、木镐 1.5 秒、更好的镐更快
+                .strength(2.0f)
                 .noOcclusion());
     }
 

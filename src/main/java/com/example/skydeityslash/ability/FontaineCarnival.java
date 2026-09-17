@@ -1,8 +1,7 @@
 package com.example.skydeityslash.ability;
 
-import com.example.skydeityslash.entity.EntityFontaineTideSword;
 import com.example.skydeityslash.entity.EntityFontaineWave;
-import com.example.skydeityslash.registry.ModEntities;
+import com.example.skydeityslash.entity.EntitySwordHologram;
 import mods.flammpfeil.slashblade.SlashBlade.RegistryEvents;
 import mods.flammpfeil.slashblade.capability.slashblade.CapabilitySlashBlade;
 import mods.flammpfeil.slashblade.capability.slashblade.ISlashBladeState;
@@ -26,7 +25,7 @@ import java.awt.Color;
  * 阶段一：8 方向 × 2 轮 = 16 道剑气，全部从玩家身前向前发射（横/竖/左右斜交替，
  *         全部为浅蓝色），每道无视护甲真伤 52 点；
  * 阶段二：释放瞬间获得 2 秒抗性提升 4；
- * 阶段三：深蓝色幻影剑垂直落下瞄准敌人，造成 1314 点伤害；
+ * 阶段三：全息剑（图片剑）垂直落下瞄准敌人，造成 1314 点伤害；
  * 阶段四：以玩家为中心，在左右后方生成距离一格、断开前方的圆环粒子，
  *         连续生成并像涟漪一样向外散开（蓝/深蓝/蓝白色）。
  * 全部伤害命中时按等额生命吸血（由吸血实体实现）。
@@ -100,21 +99,13 @@ public class FontaineCarnival {
         // 阶段二：释放瞬间获得 2 秒抗性提升 4
         player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 40, 3));
 
-        // 阶段三：深蓝色幻影剑垂直落下瞄准敌人（1314 伤害，延时 1 秒）
+        // 阶段三：全息剑垂直落下瞄准敌人（1314 伤害不变，延时 1 秒）
         Entity target = state.getTargetEntity(level);
         Vec3 basePos = target != null ? target.position()
                 : player.getEyePosition().add(player.getLookAngle().scale(5.0));
-        Vec3 rainPos = basePos.add(0.0, 7.0, 0.0);
-        EntityFontaineTideSword bigSword = new EntityFontaineTideSword(ModEntities.FONTAINE_TIDE_SWORD.get(), level);
-        bigSword.setOwner(player);
-        bigSword.setColor(DARK_BLUE);
-        bigSword.setRoll(0.0F);
-        bigSword.setDamage(BIG_SWORD_DAMAGE);
-        bigSword.startRiding(player, true);
-        bigSword.setDelay(BIG_SWORD_DELAY);
-        bigSword.setPos(rainPos);
-        bigSword.setXRot(-90.0F);
-        level.addFreshEntity(bigSword);
+        final Vec3 landPos = basePos;
+        serverLevel.getServer().tell(new TickTask(serverLevel.getServer().getTickCount() + BIG_SWORD_DELAY, () ->
+                EntitySwordHologram.spawnFall(level, landPos, player, (float) BIG_SWORD_DAMAGE)));
 
         // 阶段四：水波涟漪（以玩家为中心，从 2 格扩散到 4 格，上下波动，动画加快并逐渐消散）
         Vec3 center = player.position().add(0.0, 1.0, 0.0);

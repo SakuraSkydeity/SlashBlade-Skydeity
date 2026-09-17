@@ -40,6 +40,7 @@ public class ModCreativeTabs {
                         output.accept(new ItemStack(ModItems.QIYUNIAO_IGNOT.get()));
                         output.accept(new ItemStack(ModItems.PIGEON_IGNOT.get()));
                         output.accept(new ItemStack(ModItems.IMAGINE_IGNOT.get()));
+                        output.accept(new ItemStack(ModItems.CHIKUI_IGNOT.get()));
                         output.accept(new ItemStack(ModItems.ANTIQUEFAN.get()));
                         output.accept(new ItemStack(ModBlocks.CONSTANT_MOON_PEDESTAL_ITEM.get()));
                         output.accept(new ItemStack(ModBlocks.FROST_MOON_BASE_ITEM.get()));
@@ -48,9 +49,9 @@ public class ModCreativeTabs {
                         addBlade(params, output, "odette");
                         addBlade(params, output, "linnea");
                         addBlade(params, output, "columbina");
-                        addBlade(params, output, "iroi");
                         addBlade(params, output, "sakurafox");
-                        addBlade(params, output, "test1");
+                        addBlade(params, output, "iroi");
+                        addBlade(params, output, "zankou");
                     })
                     .build());
 

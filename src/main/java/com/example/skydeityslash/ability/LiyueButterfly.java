@@ -1,5 +1,6 @@
 package com.example.skydeityslash.ability;
 
+import com.example.skydeityslash.entity.EntityGhostButterfly;
 import com.example.skydeityslash.entity.EntityHutaoCircleSlash;
 import com.example.skydeityslash.registry.ModEntities;
 import com.example.skydeityslash.registry.ModEffects;
@@ -117,6 +118,14 @@ public class LiyueButterfly {
                 }
             }
         }));
+
+        // 幽灵蝶：SA 释放时在「目标周围」生成 5 只（与幻影剑同时出现）；无目标则落在准星前方
+        final Vec3 bfCenter = (target != null && target.isAlive() && !target.isRemoved())
+                ? target.position().add(0.0, 0.8, 0.0)
+                : player.getEyePosition().add(look.scale(5.0));
+        final Vec3 bfLook = look;
+        serverLevel.getServer().tell(new TickTask(serverLevel.getServer().getTickCount() + SWORD_DELAY, () ->
+                EntityGhostButterfly.spawnCluster(level, bfCenter, bfLook)));
 
         // SA 结束：目标位置高 3 格处三色粒子（深红/红/少量粉红）形成下落螺旋。
         // 粒子随螺旋从顶部向底部推进而先产生者先消散，从而看到由顶到底逐渐消失的效果。
