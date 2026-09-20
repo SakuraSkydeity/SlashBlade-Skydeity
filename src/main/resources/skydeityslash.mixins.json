@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.example.skydeityslash.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [],
+  "client": [
+    "client.MixinWavefrontObject",
+    "client.MixinBladeRenderState",
+    "client.MixinModelResourceLoader",
+    "client.MixinSlashBladeTEISR",
+    "client.MixinSlashEffectRenderer"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

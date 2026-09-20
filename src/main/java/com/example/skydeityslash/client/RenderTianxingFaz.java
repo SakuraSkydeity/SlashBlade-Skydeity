@@ -28,6 +28,16 @@ public class RenderTianxingFaz extends EntityRenderer<EntityTianxingFaz> {
     private static final float GLOW_ALPHA_MULTIPLIER = 0.72f;
     private static final float GLOW_SCALE = 1.025f;
 
+    /**
+     * RenderType 只跟贴图有关，是常量。每帧现调 {@code RenderType.entityTranslucent(...)}
+     * 会新建实例，而 {@code MultiBufferSource} 是按实例查表的 —— 等于每帧都新开一个
+     * 顶点缓冲再丢掉。提前建好即可。
+     */
+    private static final RenderType DADI_RENDER_TYPE = RenderType.entityTranslucent(DADI_TEXTURE);
+    private static final RenderType DADI_GLOW_RENDER_TYPE = RenderType.entityTranslucentEmissive(DADI_TEXTURE);
+    private static final RenderType SKY_RENDER_TYPE = RenderType.entityTranslucent(SKY_TEXTURE);
+    private static final RenderType SKY_GLOW_RENDER_TYPE = RenderType.entityTranslucentEmissive(SKY_TEXTURE);
+
     public RenderTianxingFaz(EntityRendererProvider.Context ctx) {
         super(ctx);
     }
@@ -45,9 +55,9 @@ public class RenderTianxingFaz extends EntityRenderer<EntityTianxingFaz> {
             return;
         }
         float radius = entity.getRadius() * entity.getExpansionProgress(partial);
-        ResourceLocation tex = getTextureLocation(entity);
-        VertexConsumer vc = buffer.getBuffer(RenderType.entityTranslucent(tex));
-        VertexConsumer glowVc = buffer.getBuffer(RenderType.entityTranslucentEmissive(tex));
+        boolean sky = entity.getVisualVariant() == EntityTianxingFaz.VARIANT_DADI_2;
+        VertexConsumer vc = buffer.getBuffer(sky ? SKY_RENDER_TYPE : DADI_RENDER_TYPE);
+        VertexConsumer glowVc = buffer.getBuffer(sky ? SKY_GLOW_RENDER_TYPE : DADI_GLOW_RENDER_TYPE);
         float alpha = Mth.clamp(entity.getRenderAlpha(partial) * ALPHA_MULTIPLIER, 0.0f, 1.0f);
         float glowAlpha = Mth.clamp(alpha * GLOW_ALPHA_MULTIPLIER, 0.0f, 1.0f);
         pose.pushPose();

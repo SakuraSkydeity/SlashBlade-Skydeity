@@ -22,8 +22,28 @@ public final class GlowGeometry {
 
     public enum Pass { BASE_COLOR, BASE_GLOW, UNITY_COLOR, UNITY_GLOW }
 
+    /**
+     * 按距离档位调整各环的段数。远距离下同一圈只用一半段数，省掉一半顶点写入，
+     * 而屏幕上就几十个像素，看不出多边形感。近档（{@link FxLod#FULL}）保持原值，
+     * 也就是贴脸看的时候几何与原来完全一致。
+     */
+    public static void setDetail(int tier) {
+        int percent = FxLod.percent(tier);
+        RING_SEGMENTS = Math.max(16, RING_FULL * percent / 100);
+        LOOP_SEGMENTS = Math.max(12, LOOP_FULL * percent / 100);
+        SWEEP_SEGMENTS = Math.max(12, SWEEP_FULL * percent / 100);
+        SHARD_COUNT = Math.max(12, SHARD_FULL * percent / 100);
+    }
+
     private static final float TAU = (float) Math.PI * 2F, DEG = (float) Math.PI / 180F, CENTER_Z = 2.15F;
-    private static final int RING_SEGMENTS = 92, LOOP_SEGMENTS = 58, SWEEP_SEGMENTS = 54, SHARD_COUNT = 58;
+    /** 基准段数：近档就是它，几何与原来逐顶点一致。 */
+    private static final int RING_FULL = 92, LOOP_FULL = 58, SWEEP_FULL = 54, SHARD_FULL = 58;
+    /**
+     * 当前档位下的实际段数，由 {@link #setDetail(int)} 在每帧绘制前设定。
+     * 只在渲染线程读写，不需要同步。
+     */
+    private static int RING_SEGMENTS = RING_FULL, LOOP_SEGMENTS = LOOP_FULL,
+            SWEEP_SEGMENTS = SWEEP_FULL, SHARD_COUNT = SHARD_FULL;
     private static final float GOLD_R = .95F, GOLD_G = .86F, GOLD_B = .63F, LAV_R = .74F, LAV_G = .76F, LAV_B = 1F;
 
     private static RenderType rtype(String name, RenderStateShard.TransparencyStateShard transp) {

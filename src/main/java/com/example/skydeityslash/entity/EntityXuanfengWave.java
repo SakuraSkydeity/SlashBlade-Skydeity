@@ -32,7 +32,13 @@ public class EntityXuanfengWave extends EntityDrive {
     @Override
     public void tick() {
         super.tick();
-        if (level() instanceof ServerLevel serverLevel && !noParticles) {
+        // 伤害结算只在服务端进行。原来这里没做区分，客户端每 tick 也会
+        // 遍历一遍自己这边的实体列表，再对每个命中调一次真伤接口 ——
+        // 而真伤接口第一行就要求非客户端，所以客户端那份完全是白跑。
+        if (!(level() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+        if (!noParticles) {
             // 划过路径留下白色粒子拖尾（沿运动方向后方，加厚成多层）
             Vec3 pos = position();
             Vec3 vel = getDeltaMovement();
@@ -43,7 +49,7 @@ public class EntityXuanfengWave extends EntityDrive {
             }
         }
         AABB aabb = getBoundingBox().inflate(1.0);
-        List<LivingEntity> targets = level().getEntitiesOfClass(LivingEntity.class, aabb,
+        List<LivingEntity> targets = serverLevel.getEntitiesOfClass(LivingEntity.class, aabb,
                 e -> e != getShooter() && e.isAlive() && !e.isSpectator());
         for (LivingEntity target : targets) {
             SkydeitySlash.GameEvents.applyTrueDamage(target, getShooter(), 52.0f);

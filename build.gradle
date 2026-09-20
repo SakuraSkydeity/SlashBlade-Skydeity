@@ -121,7 +121,9 @@ jar {
                 "Implementation-Title"    : project.name,
                 "Implementation-Version"  : project.jar.archiveVersion,
                 "Implementation-Vendor"   : mod_authors,
-                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+                // 拔刀剑 OBJ 渲染优化用的 mixin 配置；Forge 从这里读取要加载的 mixin 列表
+                "MixinConfigs"            : "${mod_id}.mixins.json"
         ])
     }
 }

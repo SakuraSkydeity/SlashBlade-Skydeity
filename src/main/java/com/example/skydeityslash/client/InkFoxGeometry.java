@@ -15,7 +15,13 @@ public final class InkFoxGeometry {
     private InkFoxGeometry() {}
 
     private static final float TAU = (float) Math.PI * 2F, DEG = (float) Math.PI / 180F;
-    private static final int RING_SEGMENTS = 88, SWEEP_SEGMENTS = 56;
+    /** 基准段数：近档就是它，几何与原来逐顶点一致。 */
+    private static final int RING_FULL = 88, SWEEP_FULL = 56;
+    /**
+     * 当前档位下的实际段数，由 {@link #setDetail(int)} 在每帧绘制前设定。
+     * 只在渲染线程读写，不需要同步。
+     */
+    private static int RING_SEGMENTS = RING_FULL, SWEEP_SEGMENTS = SWEEP_FULL;
 
     // 墨绿山水色板：深墨 → 墨绿 → 山水绿 → 翠玉 → 月白(亮芯)
     private static final float DEEP_R = .05F, DEEP_G = .10F, DEEP_B = .08F;
@@ -25,6 +31,16 @@ public final class InkFoxGeometry {
     private static final float MOON_R = .16F, MOON_G = .40F, MOON_B = .28F;
 
     public enum Pass { COLOR, GLOW }
+
+    /**
+     * 按距离档位调整环段数。远距离下同一圈只用一半段数，省掉一半顶点写入，
+     * 而屏幕上就几十个像素，看不出多边形感。近档（{@link FxLod#FULL}）保持原值。
+     */
+    public static void setDetail(int tier) {
+        int percent = FxLod.percent(tier);
+        RING_SEGMENTS = Math.max(16, RING_FULL * percent / 100);
+        SWEEP_SEGMENTS = Math.max(12, SWEEP_FULL * percent / 100);
+    }
 
     private static void vv(Matrix4f m, VertexConsumer vc, float x, float y, float z, float r, float g, float b, float a) {
         vc.vertex(m, x, y, z)

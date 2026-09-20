@@ -35,6 +35,9 @@ public class RenderEffectPreview extends EntityRenderer<EntityEffectPreview> {
         Vec3 camera = cam.getPosition().subtract(entityWorld);
         float age = Mth.clamp(entity.tickCount + partial, 0, entity.getLifetime());
 
+        // 预览是拿来逐帧看形态的，一律用最高细节，不跟着距离降档。
+        GlowGeometry.setDetail(FxLod.FULL);
+
         if (entity.getEffectType() == 0) {
             float frame = age * 40.0F / EntityEffectPreview.LIFETIME_NARU; // 原版 F0-F40 时间轴
             Vec3 zero = new Vec3(0, 0, 0);

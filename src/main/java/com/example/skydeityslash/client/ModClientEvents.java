@@ -1,13 +1,26 @@
 package com.example.skydeityslash.client;
 
+import com.example.skydeityslash.client.objopt.ObjOpt;
 import com.example.skydeityslash.registry.ModBlockEntities;
 import com.example.skydeityslash.registry.ModEntities;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 
 /**
  * 客户端事件：注册自定义实体与方块实体的渲染器。
  */
 public class ModClientEvents {
+
+    /**
+     * 退出世界时清理刀模渲染优化的显存缓存与 NBT 解析缓存。
+     *
+     * <p>顶点缓冲是 GL 对象，随图形上下文存在，跨世界复用没有意义；
+     * 不清的话反复进出世界会让缓存一直握着已经没用的缓冲。
+     */
+    public static void onClientLogout(ClientPlayerNetworkEvent.LoggingOut event) {
+        ObjOpt.onLogout();
+    }
+
     public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(ModEntities.UMBRELLA.get(), RenderRainUmbrella::new);
         event.registerEntityRenderer(ModEntities.INK_FOX_FIELD.get(), RenderInkFoxField::new);

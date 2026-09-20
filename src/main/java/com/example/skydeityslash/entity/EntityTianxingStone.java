@@ -152,9 +152,16 @@ public class EntityTianxingStone extends Projectile {
         return false;
     }
 
+    /**
+     * 距离剔除：超过 80 格不再渲染。
+     *
+     * <p>原来直接返回 {@code true}（任意距离都渲染），而它只有 0.5×0.5 的碰撞箱、
+     * 视觉尺寸约 4 格，80 格已经远大于"看得见"的范围，既不会误剔除，也避免
+     * 陨石在空中飞远之后还在白白占渲染。
+     */
     @Override
     public boolean shouldRenderAtSqrDistance(double dist) {
-        return true;
+        return dist < 80.0 * 80.0;
     }
 
     @Override

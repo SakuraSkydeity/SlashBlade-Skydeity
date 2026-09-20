@@ -28,6 +28,9 @@ public class RenderInkFoxField extends EntityRenderer<EntityInkFoxField> {
                        MultiBufferSource buffer, int light) {
         float age = Mth.clamp(entity.tickCount + partial, 0, EntityInkFoxField.LIFETIME);
 
+        // 山水几何每帧现算，段数按距离降档（近处保持原样，远处减半）。
+        InkFoxGeometry.setDetail(FxLod.tier(entity, entityRenderDispatcher.camera));
+
         pose.pushPose();
         pose.mulPose(Axis.YP.rotationDegrees(-entity.getYaw()));
         Matrix4f m = pose.last().pose();

@@ -24,6 +24,8 @@ public class RenderSwordHologram extends EntityRenderer<EntitySwordHologram> {
 
     private static final ResourceLocation TEXTURE =
             new ResourceLocation("skydeityslash", "effects/sword/sword.png");
+    /** 只跟贴图有关，建一次即可 —— 每帧现调会新建实例并让顶点缓冲每帧重建。 */
+    private static final RenderType RENDER_TYPE = RenderType.entityTranslucent(TEXTURE, false);
 
     /** 全息剑渲染高度（格） */
     private static final float HEIGHT = 3.0f;
@@ -67,7 +69,7 @@ public class RenderSwordHologram extends EntityRenderer<EntitySwordHologram> {
 
         pose.pushPose();
         pose.mulPose(Axis.YP.rotationDegrees(yawToCam));
-        VertexConsumer vc = buffer.getBuffer(RenderType.entityTranslucent(TEXTURE, false));
+        VertexConsumer vc = buffer.getBuffer(RENDER_TYPE);
         Matrix4f mat = pose.last().pose();
         Matrix3f nor = pose.last().normal();
         float r = 1.0f, g = 1.0f, b = 1.0f;

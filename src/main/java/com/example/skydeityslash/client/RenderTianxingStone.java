@@ -23,6 +23,8 @@ public class RenderTianxingStone extends EntityRenderer<EntityTianxingStone> {
     private static final float SCALE = 0.2f;
     private static final ResourceLocation TEXTURE =
             new ResourceLocation("skydeityslash", "textures/entity/tianxing.png");
+    /** 只跟贴图有关，建一次即可 —— 每帧现调会新建实例并让顶点缓冲每帧重建。 */
+    private static final RenderType RENDER_TYPE = RenderType.entityTranslucent(TEXTURE);
 
     public RenderTianxingStone(EntityRendererProvider.Context ctx) {
         super(ctx);
@@ -45,7 +47,7 @@ public class RenderTianxingStone extends EntityRenderer<EntityTianxingStone> {
         pose.mulPose(Axis.XP.rotationDegrees(lerpPitch));
         pose.mulPose(Axis.ZP.rotation(age * 0.06f));
         pose.scale(SCALE, SCALE, SCALE);
-        VertexConsumer vc = buffer.getBuffer(RenderType.entityTranslucent(TEXTURE));
+        VertexConsumer vc = buffer.getBuffer(RENDER_TYPE);
         drawBox(pose, vc, -6, -6, -6, 12, 12, 12);
         drawBox(pose, vc, -2, -10, -10, 4, 20, 20);
         drawBox(pose, vc, -10, -2, -10, 20, 4, 20);

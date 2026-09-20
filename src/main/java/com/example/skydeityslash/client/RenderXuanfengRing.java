@@ -39,6 +39,9 @@ public class RenderXuanfengRing extends EntityRenderer<EntityXuanfengRing> {
         OdetteRingGeometry.Basis basis = OdetteRingGeometry.basis(entity.getRingDirection());
         long seed = entity.getSeed();
 
+        // 环类几何每帧现算，段数按距离降档：远处同一个环只占几十像素，段数减半看不出。
+        GlowGeometry.setDetail(FxLod.tier(entity, cam));
+
         OdetteRingGeometry.renderRings(m, buffer.getBuffer(GlowGeometry.GLOW), frame, center, basis, camera, seed);
 
         // 新增：竖弧（preview enlight 3 竖直圆弧），时间轴用完整 64 tick 便于完整展开

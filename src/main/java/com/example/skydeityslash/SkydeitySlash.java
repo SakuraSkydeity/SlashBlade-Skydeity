@@ -114,6 +114,7 @@ public class SkydeitySlash {
         if (FMLEnvironment.dist.isClient()) {
             modEventBus.addListener(ModClientEvents::onRegisterRenderers);
             MinecraftForge.EVENT_BUS.addListener(GameEvents::onItemTooltip);
+            MinecraftForge.EVENT_BUS.addListener(ModClientEvents::onClientLogout);
         }
         MinecraftForge.EVENT_BUS.addListener(GameEvents::onBladeHit);
         MinecraftForge.EVENT_BUS.addListener(GameEvents::onPhantomSwordColor);
@@ -1048,7 +1049,7 @@ public class SkydeitySlash {
             stack.getOrCreateTagElement("display").put("Lore", lore);
         }
 
-        /** 花岚云翳山岩树影：仿照灼霜刀「burst_drive」，每次挥砍（右键攻击动画）额外发射一道小的剑气 */
+        /** 花岚云翳山岩树影：每次挥砍（右键攻击动画）额外发射一道小的剑气 */
         public static void onDoSlash(SlashBladeEvent.DoSlashEvent event) {
             try {
                 ISlashBladeState state = event.getSlashBladeState();
@@ -1275,7 +1276,8 @@ public class SkydeitySlash {
                 }
             }
 
-            // 未来自我连续性假设（iroi）：手持时刀身紫光；免死扣 10 级经 onLivingHurt 另行处理（攻击附赠剑气已按需求移除）
+            // 未来自我连续性假设（iroi）：手持时刀身紫光；免死（扣 10 级）见 onLivingHurt；
+            // 命中侧的效果见 onLivingDamagePost —— **每 3 次命中**朝目标放一道十字剑气（两道翾风回雪刀波，各 52 伤）
             if (hasIroiFuture
                     && SpecialEffect.isEffective(ModSpecialEffects.IROI_SE40.getId(), player.experienceLevel)) {
                 state.setEffectColor(new Color(0xFF55FF));
@@ -2126,13 +2128,20 @@ public class SkydeitySlash {
                         double th = rot + k * (Math.PI * 2.0 / ringPts);
                         slRingParticle(ringSl, rp.x + Math.cos(th) * 10.0, rp.y, rp.z + Math.sin(th) * 10.0);
                     }
-                    player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 100, 4));
-                    for (LivingEntity re : ringSl.getEntitiesOfClass(LivingEntity.class,
-                            player.getBoundingBox().inflate(10.0),
-                            x -> x.isAlive() && !x.isSpectator())) {
-                        if (re == player) continue;
-                        if (re.position().distanceToSqr(rp) > 100.0) continue;
-                        re.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 100, 9));
+                    // 效果施加与范围扫描按 20 tick 周期做，不再每 tick 重刷：
+                    // 抗性/缓慢本身持续 100 tick（环总时长也是 100 tick），每 tick 重刷
+                    // 既没有额外效果，又会给每个受影响生物每 tick 发一次效果同步包。
+                    // 环刚开始的 20 tick 仍每 tick 刷，保证一进环就吃到效果、起止不延迟。
+                    long now = player.level().getGameTime();
+                    if (ringDeadline - now > 80L || now % 20L == 0L) {
+                        player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 100, 4));
+                        for (LivingEntity re : ringSl.getEntitiesOfClass(LivingEntity.class,
+                                player.getBoundingBox().inflate(10.0),
+                                x -> x.isAlive() && !x.isSpectator())) {
+                            if (re == player) continue;
+                            if (re.position().distanceToSqr(rp) > 100.0) continue;
+                            re.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 100, 9));
+                        }
                     }
                 }
             } else {

@@ -25,6 +25,8 @@ public class RenderGhostButterfly extends EntityRenderer<EntityGhostButterfly> {
 
     private static final ResourceLocation TEXTURE =
             new ResourceLocation("skydeityslash", "effects/ghostbutterfly/ghostbutterfly.png");
+    /** 只跟贴图有关，建一次即可 —— 每帧现调会新建实例并让顶点缓冲每帧重建。 */
+    private static final RenderType RENDER_TYPE = RenderType.entityTranslucent(TEXTURE, false);
 
     /** 渲染高度（格）—— 很小的一只 */
     private static final float HEIGHT = 0.42f;
@@ -77,7 +79,7 @@ public class RenderGhostButterfly extends EntityRenderer<EntityGhostButterfly> {
         if (spin != 0f) {
             pose.mulPose(Axis.ZP.rotationDegrees(age * spin));
         }
-        VertexConsumer vc = buffer.getBuffer(RenderType.entityTranslucent(TEXTURE, false));
+        VertexConsumer vc = buffer.getBuffer(RENDER_TYPE);
         Matrix4f mat = pose.last().pose();
         Matrix3f nor = pose.last().normal();
         float r = 1.0f, g = 0.98f, b = 0.95f;   // 近白，让贴图本身的深橙显色

@@ -44,13 +44,20 @@ public class IroiXiangyangArt {
     private static final int PHANTOM_INTERVAL = 20;
     /** 幻影剑生成高度（落点上方几格） */
     private static final double PHANTOM_HEIGHT = 7.0;
-    /** 幻影剑从生成到落到位需要的 tick（决定真伤结算时刻；与落速联动） */
-    private static final int PHANTOM_FALL_TICKS = 8;
+    /**
+     * 幻影剑从生成到落到位需要的 tick —— **这一项就是「单把剑的生效时间」**：
+     * 越小 = 扎得越急、真伤结算越早（落速 = {@link #PHANTOM_HEIGHT} / 本值，自动联动）。
+     * ⚠ 它**不影响「依次」的节奏**，节奏由 {@link #PHANTOM_INTERVAL} 单独控制。
+     */
+    private static final int PHANTOM_FALL_TICKS = 5;
     /** 单把幻影剑落地真伤 */
     private static final float PHANTOM_DAMAGE = 52.0f;
     /** 6 个落点绕目标的小幅散布半径（格），避免完全叠在一起看不出「一把一把」 */
     private static final double PHANTOM_SPREAD = 1.4;
-    /** 落点散布起始相位，让第一把正对目标 */
+    /**
+     * 落点散布起始相位：-90° ⇒ 1 号剑落在目标**正北（−Z）** 1.4 格处，其余五把按 60° 依次排开。
+     * ⚠ 这个六边形是**世界轴向固定**的，不随玩家视线旋转（只影响"绕圈的第几把在哪个方位"）。
+     */
     private static final double PHANTOM_PHASE = -Math.PI / 2.0;
 
     /** 鸣雷神特效：type 0 = naru 组 */

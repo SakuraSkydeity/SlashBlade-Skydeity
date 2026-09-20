@@ -1,0 +1,28 @@
+{
+  "name": "skydeityslash:genshin",
+  "properties": {
+    "attack_base": 7.0,
+    "sword_type": [
+      "bewitched"
+    ]
+  },
+  "enchantments": [
+    {
+      "id": "minecraft:power",
+      "lvl": 5
+    },
+    {
+      "id": "minecraft:unbreaking",
+      "lvl": 3
+    },
+    {
+      "id": "minecraft:sharpness",
+      "lvl": 5
+    }
+  ],
+  "render": {
+    "carry_type": "default",
+    "model": "skydeityslash:model/named/orig.obj",
+    "texture": "skydeityslash:model/named/genshin.png"
+  }
+}

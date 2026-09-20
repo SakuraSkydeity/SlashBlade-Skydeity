@@ -177,8 +177,20 @@ public class EntityTianxingFaz extends Entity {
 
     @Override
     public boolean isPickable() { return false; }
+
+    /**
+     * 距离剔除：超过"固定余量 + 法阵半径两倍"就不再渲染。
+     *
+     * <p>这里原本直接返回 {@code true}，等于对任意距离都渲染。但法阵的模型只有
+     * 0.5×0.5 的碰撞箱，原版按碰撞箱算出的可见距离只有 32 格，远小于法阵实际铺开
+     * 的范围，所以当初被强制打开了。正确做法是给出一个**随半径增长、但有上界**的
+     * 距离：既不会在应该看得见的时候突然消失，也不会在几百格外还占着渲染。
+     */
     @Override
-    public boolean shouldRenderAtSqrDistance(double dist) { return true; }
+    public boolean shouldRenderAtSqrDistance(double dist) {
+        double limit = 64.0 + getRadius() * 2.0;
+        return dist < limit * limit;
+    }
     @Override
     public Packet<ClientGamePacketListener> getAddEntityPacket() {
         return NetworkHooks.getEntitySpawningPacket(this);

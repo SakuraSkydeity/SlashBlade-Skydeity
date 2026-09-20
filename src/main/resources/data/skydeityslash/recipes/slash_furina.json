@@ -6,6 +6,7 @@
       "type": "slashblade:blade",
       "item": "slashblade:slashblade",
       "request": {
+        "name": "skydeityslash:genshin",
         "refine": 52,
         "proud_soul": 5200,
         "kill": 5200
@@ -29,7 +30,12 @@
       "item": "skydeityslash:tide_ingot"
     },
     {
-      "item": "minecraft:conduit"
+      "type": "slashblade:blade",
+      "item": "slashblade:slashblade_silverbamboo",
+      "request": {
+        "proud_soul": 5200,
+        "kill": 5200
+      }
     },
     {
       "item": "skydeityslash:tide_ingot"
