@@ -8,8 +8,8 @@ import org.joml.Matrix4f;
 import static com.example.skydeityslash.client.NarukamiGeometry21.hash01;
 
 /**
- * 鸣雷神 六阶段视觉 忠实移植（来自 1.20KaBlade NarukamiRenderLayer）。
- * 「几何+配色」方案：保留原版全部几何/配色/时间轴，去着色器贴图，用 POSITION_COLOR 原生管线输出。
+ * 鸣雷神 六阶段视觉层。
+ * 「几何+配色」方案：全部几何/配色/时间轴由 POSITION_COLOR 原生管线输出，不用着色器贴图。
  */
 final class NarukamiRenderLayer21 {
     enum Material { COMPOSITE, ENERGY, LIGHTNING, CROSS, PARTICLE }

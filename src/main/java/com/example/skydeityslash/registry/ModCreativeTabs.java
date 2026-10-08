@@ -41,11 +41,13 @@ public class ModCreativeTabs {
                         output.accept(new ItemStack(ModItems.PIGEON_IGNOT.get()));
                         output.accept(new ItemStack(ModItems.IMAGINE_IGNOT.get()));
                         output.accept(new ItemStack(ModItems.CHIKUI_IGNOT.get()));
+                        output.accept(new ItemStack(ModItems.MOON_TEMPLATE.get()));
                         output.accept(new ItemStack(ModItems.ANTIQUEFAN.get()));
                         output.accept(new ItemStack(ModBlocks.CONSTANT_MOON_PEDESTAL_ITEM.get()));
                         output.accept(new ItemStack(ModBlocks.FROST_MOON_BASE_ITEM.get()));
-                        // 「源流」神原：基础/中间刀（数值同原版阎魔刀），排在高阶刀之前
+                        // 「源流」神原 / 「源流」未竟：中间刀（数值同原版阎魔刀），排在高阶刀之前
                         addBlade(params, output, "genshin");
+                        addBlade(params, output, "nevertoever");
                         addBlade(params, output, "slash_furina");
                         addBlade(params, output, "hutao");
                         addBlade(params, output, "odette");

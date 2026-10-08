@@ -3,11 +3,16 @@ package com.example.skydeityslash.registry;
 import com.example.skydeityslash.SkydeitySlash;
 import com.example.skydeityslash.entity.EntityBloomSlash;
 import com.example.skydeityslash.entity.EntityChikuiArc;
+import com.example.skydeityslash.entity.EntityChikuiFlower;
 import com.example.skydeityslash.entity.EntityCutLines;
 import com.example.skydeityslash.entity.EntityGhostButterfly;
 import com.example.skydeityslash.entity.EntityGoldenBranchBall;
 import com.example.skydeityslash.entity.EntityInkFoxField;
 import com.example.skydeityslash.entity.EntityInkSwarm;
+import com.example.skydeityslash.entity.EntityIroiBeam;
+import com.example.skydeityslash.entity.EntityIroiOrb;
+import com.example.skydeityslash.entity.EntityNewMoonRule;
+import com.example.skydeityslash.entity.EntityOverrankMagic;
 import com.example.skydeityslash.entity.EntityRainUmbrella;
 import com.example.skydeityslash.entity.EntitySakuraBloom;
 import com.example.skydeityslash.entity.EntitySwordHologram;
@@ -213,4 +218,49 @@ public class ModEntities {
                     .setTrackingRange(32)
                     .setUpdateInterval(1)
                     .build(SkydeitySlash.MODID + ":cut_lines"));
+
+    /** NewMoonRule（新月法则）：落点地面平铺的 10×10 天蓝徽记（纯视觉贴图，非粒子） */
+    public static final RegistryObject<EntityType<EntityNewMoonRule>> NEW_MOON_RULE =
+            ENTITIES.register("newmoonrule", () -> EntityType.Builder
+                    .<EntityNewMoonRule>of(EntityNewMoonRule::new, MobCategory.MISC)
+                    .sized(0.2f, 0.2f)
+                    .setTrackingRange(64)
+                    .setUpdateInterval(1)
+                    .build(SkydeitySlash.MODID + ":newmoonrule"));
+
+    /** 「赤葵」第二种 SA 的程序化花朵（8+8 花瓣 + 亮芯 + 花蕊，纯几何加法混合、非粒子） */
+    public static final RegistryObject<EntityType<EntityChikuiFlower>> CHIKUI_FLOWER =
+            ENTITIES.register("chikui_flower", () -> EntityType.Builder
+                    .<EntityChikuiFlower>of(EntityChikuiFlower::new, MobCategory.MISC)
+                    .sized(0.2f, 0.2f)
+                    .setTrackingRange(64)
+                    .setUpdateInterval(1)
+                    .build(SkydeitySlash.MODID + ":chikui_flower"));
+
+    /** 「超位法术」：巨型地面法阵 + 天光 + 光柱 + 升腾符文（纯视觉，无伤害；/skydeityslash effect overrank） */
+    public static final RegistryObject<EntityType<EntityOverrankMagic>> OVERRANK_MAGIC =
+            ENTITIES.register("overrank_magic", () -> EntityType.Builder
+                    .<EntityOverrankMagic>of(EntityOverrankMagic::new, MobCategory.MISC)
+                    .sized(0.2f, 0.2f)
+                    .setTrackingRange(64)
+                    .setUpdateInterval(1)
+                    .build(SkydeitySlash.MODID + ":overrank_magic"));
+
+    /** 「向阳」第二形态：斜光束轰击（程序化柔边光片，伤害由 SA 结算；/skydeityslash effect iroibeam） */
+    public static final RegistryObject<EntityType<EntityIroiBeam>> IROI_BEAM =
+            ENTITIES.register("iroi_beam", () -> EntityType.Builder
+                    .<EntityIroiBeam>of(EntityIroiBeam::new, MobCategory.MISC)
+                    .sized(0.2f, 0.2f)
+                    .setTrackingRange(64)
+                    .setUpdateInterval(1)
+                    .build(SkydeitySlash.MODID + ":iroi_beam"));
+
+    /** 「向阳」第二形态收尾的紫色光球群（8 个球漂浮 2 秒；/skydeityslash effect iroiorb） */
+    public static final RegistryObject<EntityType<EntityIroiOrb>> IROI_ORB =
+            ENTITIES.register("iroi_orb", () -> EntityType.Builder
+                    .<EntityIroiOrb>of(EntityIroiOrb::new, MobCategory.MISC)
+                    .sized(0.2f, 0.2f)
+                    .setTrackingRange(64)
+                    .setUpdateInterval(1)
+                    .build(SkydeitySlash.MODID + ":iroi_orb"));
 }

@@ -1,6 +1,7 @@
 package com.example.skydeityslash.ability;
 
 import com.example.skydeityslash.SkydeitySlash;
+import com.example.skydeityslash.entity.EntityNewMoonRule;
 import com.example.skydeityslash.particle.VanillaEffectSpawner;
 import mods.flammpfeil.slashblade.SlashBlade;
 import mods.flammpfeil.slashblade.capability.slashblade.CapabilitySlashBlade;
@@ -67,6 +68,9 @@ public class ColumbinaArt {
 
         // 诺德卡莱随行环：激活 10 格半径的环，持续 5 秒（重复使用刷新时长，最长 5 秒）
         SkydeitySlash.GameEvents.activateColumbinaRing(player);
+
+        // NewMoonRule（新月法则）：脚下地面铺开 10×10 的徽记（代码画的蓝色新月 + 五颗蓝白十字星），5 秒（与随行环同长）
+        EntityNewMoonRule.spawn(server, player.position(), player.getYRot());
     }
 
     /** 召唤 12 道天蓝色剑气：从天而降、随机散布、直直落下，命中目标/地面消散（纯剑气，无粒子特效） */

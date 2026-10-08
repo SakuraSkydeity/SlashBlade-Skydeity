@@ -10,8 +10,7 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
 /**
- * 1.21.1 版特效几何库 —— 剑体始觉·LimpidityGeometry 忠实移植。
- * 逐行对齐参考 1.20KaBlade 的 LimpidityGeometry：
+ * 特效几何库 —— 「剑体始觉」的四通道几何：
  *   - 金色/淡紫配色(GOLD 0.95,0.86,0.63 / LAV 0.74,0.76,1.00)
  *   - 四通道(BASE_COLOR / BASE_GLOW / UNITY_COLOR / UNITY_GLOW)
  *   - 细节线条/光影：彩色外带 + 内圈亮白核，加法混合、无剔除、无深度写。
@@ -84,7 +83,7 @@ public final class GlowGeometry {
     }
 
     // ==================================================================
-    // ---------- 剑体始觉 · LimpidityGeometry 四通道 ----------
+    // ---------- 剑体始觉 · 四通道 ----------
     // ==================================================================
     public static void draw(Matrix4f m, VertexConsumer vc, float age,
                             float viewYaw, float viewPitch, float entityYaw, Pass pass) {
@@ -153,14 +152,75 @@ public final class GlowGeometry {
         crescent(m, vc, age, 17.2F, 9, 6.45F, 255, 52, .18F, 3.34F, 1.20F, .05F, .58F, .30F, 1, .72F);
         crescent(m, vc, age, 21.6F, 10, 6.85F, 318, 112, .34F, 3.76F, 1.62F, .04F, .96F, .86F, 1, .55F);
     }
+    /**
+     * 竖弧参数表：{start, dur, cx, cy, cz, rx, ry, bend, startDeg, endDeg, width, alpha, yawDeg}。
+     * ★ cx/cy/cz 是**原始绝对方位**（enlight 本体就是这么摆的）；居中版会把组均值减掉、并叠加 yawDeg 的自转。
+     */
+    private static final float[][] V_ARC = {
+            {8.2F, 4.8F, -.25F, 1.62F, 2.45F, 5.45F, 2.05F, .72F, 206F, 344F, .09F, .88F, 6F},
+            {10.6F, 5.8F, .32F, 1.78F, 2.75F, 4.85F, 2.55F, -.56F, -24F, 174F, .065F, .68F, 38F},
+            {14.4F, 6.5F, -.46F, 1.96F, 3F, 5.9F, 2.9F, .48F, 222F, 396F, .06F, .70F, -34F},
+            {17.8F, 6.8F, .50F, 2.06F, 3.20F, 5.15F, 2.70F, -.66F, -40F, 152F, .052F, .62F, 66F},
+            {21.5F, 7.2F, -.18F, 2.22F, 3.45F, 6.35F, 3.10F, .82F, 198F, 358F, .045F, .54F, -58F},
+            {27F, 7F, .20F, 2.26F, 3.18F, 5.45F, 2.80F, -.44F, 18F, 188F, .038F, .42F, 96F},
+    };
+    /** 每条竖弧的两支色：{带色 r,g,b, 芯色 r,g,b}（enlight 原样：紫带 + 近白热芯） */
+    private static final float[][] V_ARC_RGB = {
+            {.66F, .24F, 1F, 1F, .84F, 1F},
+            {.82F, .42F, 1F, 1F, .84F, 1F},
+            {.58F, .20F, 1F, 1F, .84F, 1F},
+            {.74F, .34F, 1F, 1F, .84F, 1F},
+            {.92F, .62F, 1F, 1F, .84F, 1F},
+            {.62F, .28F, 1F, 1F, .84F, 1F},
+    };
+    /** 竖弧组中心 = 上表 cx/cy/cz 的均值（居中版减掉它，整组就以原点为中心） */
+    private static final float V_MX = .02167F, V_MY = 1.98333F, V_MZ = 3.005F;
+
     private static void verticalArcs(Matrix4f m, VertexConsumer vc, float age) {
-        vArc(m, vc, age, 8.2F, 4.8F, -.25F, 1.62F, 2.45F, 5.45F, 2.05F, .72F, 206, 344, .09F, .66F, .24F, 1, .88F);
-        vArc(m, vc, age, 10.6F, 5.8F, .32F, 1.78F, 2.75F, 4.85F, 2.55F, -.56F, -24, 174, .065F, .82F, .42F, 1, .68F);
-        vArc(m, vc, age, 14.4F, 6.5F, -.46F, 1.96F, 3, 5.9F, 2.9F, .48F, 222, 396, .06F, .58F, .20F, 1, .70F);
-        vArc(m, vc, age, 17.8F, 6.8F, .50F, 2.06F, 3.20F, 5.15F, 2.70F, -.66F, -40, 152, .052F, .74F, .34F, 1, .62F);
-        vArc(m, vc, age, 21.5F, 7.2F, -.18F, 2.22F, 3.45F, 6.35F, 3.10F, .82F, 198, 358, .045F, .92F, .62F, 1, .54F);
-        vArc(m, vc, age, 27, 7, .20F, 2.26F, 3.18F, 5.45F, 2.80F, -.44F, 18, 188, .038F, .62F, .28F, 1, .42F);
+        vArcs(m, vc, age, false, null, 1F);
     }
+
+    /**
+     * 竖弧组的**居中版** —— 专供「翾风回雪环」这类组合特效。
+     *
+     * <p>减掉原表的绝对中心（{@link #V_MX}/{@link #V_MY}/{@link #V_MZ}），整组就以**原点**为中心，
+     * 由调用方摆到想要的位置；并让每条弧按表里的 {@code yawDeg} **各自绕 Y 转** ——
+     * 原本六条弧是**六片互相平行的平面**、只差一点 z，从侧面看就是"几条互相错开的弧"（看着像偏位），
+     * 自转之后六面互相穿插。
+     *
+     * @param tint  {带色 r,g,b, 芯色 r,g,b}；{@code null} 用本体的紫
+     * @param scale 整组缩放（1 = 原尺寸）
+     */
+    public static void verticalArcsCentered(Matrix4f m, VertexConsumer vc, float age, float[] tint, float scale) {
+        vArcs(m, vc, age, true, tint, scale);
+    }
+
+    private static void vArcs(Matrix4f m, VertexConsumer vc, float age, boolean centered, float[] tint, float scale) {
+        float k = centered ? scale : 1F;
+        // ★ 收尾速度：本体（enlight）保持原样；被别的特效借用时收得更快（组合特效要求"消散快一点"）
+        float lead = centered ? ARC_FADE_LEAD_FAST : ARC_FADE_LEAD;
+        float fadeDur = centered ? ARC_FADE_DUR_FAST : ARC_FADE_DUR;
+        for (int i = 0; i < V_ARC.length; i++) {
+            float[] v = V_ARC[i];
+            float cx = v[2] - (centered ? V_MX : 0F), cy = v[3] - (centered ? V_MY : 0F), cz = v[4] - (centered ? V_MZ : 0F);
+            float[] rgb = tint != null ? tint : V_ARC_RGB[i];
+            Matrix4f am = centered && v[12] != 0F ? new Matrix4f(m).rotateY(v[12] * DEG) : m;
+            vArc(am, vc, age, v[0], v[1], cx * k, cy * k, cz * k, v[5] * k, v[6] * k, v[7] * k,
+                    v[8], v[9], v[10] * k, rgb, lead, fadeDur,
+                    v[11] * (centered ? ARC_ALPHA_SCALE_FAST : 1F));
+        }
+    }
+    /** 竖弧收尾窗口（本体：起于 end+5、历时 8） */
+    private static final float ARC_FADE_LEAD = 5F, ARC_FADE_DUR = 8F;
+    /** 竖弧收尾窗口（居中版 / 组合特效用：起于 end+1.5、历时 5 ⇒ 消散更快） */
+    private static final float ARC_FADE_LEAD_FAST = 1.5F, ARC_FADE_DUR_FAST = 5F;
+    /**
+     * 居中版的 alpha 整体压低一档。
+     * ★ 2026-09-28：竖弧是"宽带 + 一条 1.36× alpha 的窄芯"，贴边看时那两层的累积量会在同一像素里叠起来
+     * （宽带 + 1.36× 窄芯），容易夹到 (1,1,1) 变成一条**白色亮线**。被组合特效借用时压到 0.78 就够
+     * （本体 enlight 不变）。
+     */
+    private static final float ARC_ALPHA_SCALE_FAST = .78F;
     private static void glowBall(Matrix4f m, VertexConsumer vc, float age, float viewYaw, float viewPitch) {
         float appear = smoother(stage(age, 7, 4)), fade = 1 - smoother(stage(age, 36, 10)), a = appear * fade;
         if (a <= .01F) return;
@@ -271,8 +331,8 @@ public final class GlowGeometry {
 
     private static void vArc(Matrix4f m, VertexConsumer vc, float age, float start, float duration, float cx, float cy, float cz,
                              float rx, float ry, float bend, float startDeg, float endDeg, float width,
-                             float r, float g, float bl, float alphaScale) {
-        float reveal = smoother(stage(age, start, duration)), fade = 1 - smoother(stage(age, start + duration + 5, 8)),
+                             float[] rgb, float fadeLead, float fadeDur, float alphaScale) {
+        float reveal = smoother(stage(age, start, duration)), fade = 1 - smoother(stage(age, start + duration + fadeLead, fadeDur)),
                 a = reveal * fade * alphaScale;
         if (a <= .01F) return;
         int visible = Mth.clamp((int) Math.ceil(SWEEP_SEGMENTS * reveal), 2, SWEEP_SEGMENTS);
@@ -283,9 +343,9 @@ public final class GlowGeometry {
                     p1 = arcPoint(t1, cx, cy, cz, rx, ry, bend, startDeg, endDeg);
             float w0 = width * vWidth(t0), w1 = width * vWidth(t1), a0 = a * vAlpha(t0, reveal), a1 = a * vAlpha(t1, reveal);
             quadA(m, vc, p0.plus(w0, 0), p1.plus(w1, 0), p1.plus(-w1, 0), p0.plus(-w0, 0),
-                    r, g, bl, a0, a1, a1 * .9F, a0 * .9F);
+                    rgb[0], rgb[1], rgb[2], a0, a1, a1 * .9F, a0 * .9F);
             quadA(m, vc, p0.plus(w0 * .26F, -.018F), p1.plus(w1 * .26F, -.018F), p1.plus(-w1 * .26F, .018F), p0.plus(-w0 * .26F, .018F),
-                    1, .84F, 1, a0 * 1.36F, a1 * 1.36F, a1 * 1.14F, a0 * 1.14F);
+                    rgb[3], rgb[4], rgb[5], a0 * 1.36F, a1 * 1.36F, a1 * 1.14F, a0 * 1.14F);
         }
     }
 

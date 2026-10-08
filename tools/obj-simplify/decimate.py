@@ -1,6 +1,13 @@
 # -*- coding: utf-8 -*-
 """OBJ 网格简化（边长优先的边塌缩，带 UV 缝与硬边保护）。
 
+用法: python decimate.py <in.obj> <out.obj> <比例> ["组名=比例,..."] [UV缝阈值px=34] [硬边阈值deg=38]
+
+★ 两个保护阈值是**减面力度的主开关**：默认 (34, 38) 只敢动平坦区域，
+  实测某些模型会因为"可塌缩边用尽"而卡住（如细长发光壳只降 12%）；
+  放宽到 (70, 55) 能再省 ~10% 且肉眼尚可，(130, 75) 起鞘口会出现可见棱角。
+  建议：先默认跑一遍，若结果远高于目标比例，再逐档放宽并渲染比对。
+
 - 顶点位置先去重（同坐标合并），再按边长从小到大塌缩边；
 - 保护：UV 距离过大的边（贴图缝）、二面角过大的边（硬边/转折）、边界边；
 - UV 索引与顶点法线索引**原样保留**（模型是平滑着色，重算法线会变刻面）；
@@ -14,8 +21,8 @@ from collections import defaultdict
 import numpy as np
 
 UV_TEX = 2048.0        # 贴图边长，用于把 UV 距离换算成像素
-MAX_UV_PX = 34.0       # UV 像素距离超过它 → 认为是贴图缝，不塌缩
-MAX_DIHEDRAL = 38.0    # 二面角超过它 → 硬边，不塌缩
+MAX_UV_PX = 34.0       # UV 像素距离超过它 → 认为是贴图缝，不塌缩（可命令行覆盖）
+MAX_DIHEDRAL = 38.0    # 二面角超过它 → 硬边，不塌缩（可命令行覆盖）
 UV_WEIGHT = 0.020      # UV 距离在代价里的权重（像素 × 权重）
 
 
@@ -203,6 +210,13 @@ def main():
         for kv in sys.argv[4].split(','):
             k, v = kv.split('=')
             ratios[k.strip()] = float(v)
+    global MAX_UV_PX, MAX_DIHEDRAL
+    if len(sys.argv) > 5:
+        MAX_UV_PX = float(sys.argv[5])
+    if len(sys.argv) > 6:
+        MAX_DIHEDRAL = float(sys.argv[6])
+    print(f"保护阈值: UV缝 <= {MAX_UV_PX:g}px, 硬边 <= {MAX_DIHEDRAL:g}°")
+
     V, VT, VN, groups, order = parse(src)
     print(f"输入: v={len(V)} vt={len(VT)} vn={len(VN)} "
           f"面={sum(len(groups[n]) for n in order)}")

@@ -46,6 +46,10 @@ public class ModItems {
     public static final RegistryObject<Item> CHIKUI_IGNOT =
             ITEMS.register("chikui_ignot", () -> new Item(new Item.Properties()));
 
+    /** 新月模板（锻造模板外观的物品，贴图 textures/item/moon_template.png） */
+    public static final RegistryObject<Item> MOON_TEMPLATE =
+            ITEMS.register("moon_template", () -> new Item(new Item.Properties()));
+
     /** 新月之扇（右键传送彼岸维度） */
     public static final RegistryObject<Item> ANTIQUEFAN =
             ITEMS.register("antiquefan", AntiqueFanItem::new);

@@ -2,7 +2,7 @@ package com.example.skydeityslash.client;
 
 import net.minecraft.util.Mth;
 
-/** 鸣雷神 F0-F40 时间轴的忠实移植（来自 1.20KaBlade NarukamiTimeline）。 */
+/** 鸣雷神 F0-F40 时间轴：每个阶段的进入 / 冲击 / 交接 / 退出区间。 */
 final class NarukamiTimeline21 {
     static final Cue ENTRY_FRONT = cue(13.92F,14.16F,14.70F,15.26F,15.62F,16.05F,1.00F,.50F);
     static final Cue ENTRY_UPPER = cue(14.42F,14.78F,15.46F,16.08F,16.72F,17.28F,.80F,.30F);

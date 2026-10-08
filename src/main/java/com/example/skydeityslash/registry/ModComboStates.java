@@ -131,8 +131,12 @@ public class ModComboStates {
 
     /**
      * 「赤葵」焚天烬灭舞：zankou 专属 SA（`ability/ChikuiFentian`）。
-     * 效果：① 朝面朝方向 **25 格 × 宽 3 格**（上下 +3 / −1）方框内每个生物各 **520 真伤**；
-     *       ② 一条暗红摆线 + 密集火焰（`EntityChikuiArc`，纯几何线条）；③ 身边 6 把暗红幻影剑依次射出（纯视觉，damage 0）。
+     * ★ **两种形态交替释放**（每释放一次翻转一次，见 `ChikuiFentian.takeFlowerTurn`）：
+     *   ① 焚天烬灭舞：朝面朝方向 **25 格 × 宽 3 格**（上下 +3 / −1）方框内每个生物各 **520 真伤**
+     *      + 一条暗红摆线 + 密集火焰（`EntityChikuiArc`，纯几何线条）+ 身边 6 把暗红幻影剑依次射出（纯视觉）
+     *      + 地面铺满樱花花瓣粒子；
+     *   ② 绽花：**只有一朵程序化花朵**（`EntityChikuiFlower`，8+8 花瓣 + 亮芯 + 花蕊，纯几何加法混合、非粒子），
+     *      目前不含伤害与其他任何效果。
      */
     public static final RegistryObject<ComboState> CHIKUI_COMBO =
             COMBO_STATES.register("chikui_combo",

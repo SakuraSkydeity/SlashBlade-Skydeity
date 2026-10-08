@@ -17,9 +17,14 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
 /**
- * 全息剑特效：在指定点上方 7 格生成，竖直自上下落 7 格，落地后很快消散。
+ * 全息剑特效（贴图刀）：在指定点上方 7 格生成，竖直自上下落 7 格，落地后四周**丝线汇聚**并很快消散。
  * · 指令用法（纯视觉）：/skydeityslash effect sword
  * · 剑技用法（带落地伤害）：{@link #spawnFall(Level, Vec3, LivingEntity, float)}
+ *
+ * <p>★ 2026-09-28：落地后的「四周丝线汇聚」**不走服务端粒子**，改由客户端渲染器
+ * （{@code client.RenderSwordHologram} → {@code client.FontaineThreadGeometry}）**用几何现算**
+ * —— 每条丝起点不同、终点都是剑根、各带一道弧。所以这个实体只负责存活计时与落地伤害，
+ * 丝线一根粒子都不发（也不需要同步）。
  */
 public class EntitySwordHologram extends Entity {
 
@@ -27,8 +32,8 @@ public class EntitySwordHologram extends Entity {
     public static final double FALL_DISTANCE = 7.0;
     /** 下落时长（tick） */
     public static final int FALL_TICKS = 24;
-    /** 落地后停留（tick）—— 越快消失越好 */
-    public static final int LINGER_TICKS = 12;
+    /** 落地后停留（tick）—— 12 → **16**：给"丝线汇聚"留出收束的时间（丝线进度也按它算） */
+    public static final int LINGER_TICKS = 16;
 
     private static final EntityDataAccessor<Integer> OWNER_ID = SynchedEntityData.defineId(
             EntitySwordHologram.class, EntityDataSerializers.INT);
@@ -102,19 +107,20 @@ public class EntitySwordHologram extends Entity {
                 sl.sendParticles(new DustParticleOptions(new Vector3f(0.62f, 0.82f, 1.0f), 0.65f),
                         getX(), getY() + 1.6, getZ(), 2, 0.35, 1.3, 0.35, 0.02);
             }
-        } else if (tickCount == FALL_TICKS + 1) {
-            // 落地：一圈浅蓝光环 + 结算伤害
-            if (level() instanceof ServerLevel sl) {
-                for (int i = 0; i < 24; i++) {
-                    double a = i / 24.0 * Math.PI * 2;
-                    sl.sendParticles(new DustParticleOptions(new Vector3f(0.70f, 0.88f, 1.0f), 0.7f),
-                            getX() + Math.cos(a) * 1.1, getY() + 0.1, getZ() + Math.sin(a) * 1.1,
-                            1, 0, 0, 0, 0);
+        } else {
+            if (tickCount == FALL_TICKS + 1) {
+                // 落地：一圈浅蓝光环 + 结算伤害
+                if (level() instanceof ServerLevel sl) {
+                    for (int i = 0; i < 24; i++) {
+                        double a = i / 24.0 * Math.PI * 2;
+                        sl.sendParticles(new DustParticleOptions(new Vector3f(0.70f, 0.88f, 1.0f), 0.7f),
+                                getX() + Math.cos(a) * 1.1, getY() + 0.1, getZ() + Math.sin(a) * 1.1,
+                                1, 0, 0, 0, 0);
+                    }
+                    doImpact(sl);
                 }
-                doImpact(sl);
             }
-        } else if (tickCount > getTotalLife()) {
-            discard();
+            if (tickCount > getTotalLife()) discard();
         }
     }
 

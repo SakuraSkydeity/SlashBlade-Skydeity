@@ -1,10 +1,12 @@
 package com.example.skydeityslash;
 
+import com.example.skydeityslash.client.BladeChargeDecorator;
 import com.example.skydeityslash.client.ModClientEvents;
 import com.example.skydeityslash.entity.FurinaNpcEntity;
 import com.example.skydeityslash.entity.EntityXuanfengWave;
 import com.example.skydeityslash.entity.EntityInkSwarm;
 import com.example.skydeityslash.entity.EntityRainUmbrella;
+import com.example.skydeityslash.event.BladeChargeHandler;
 import com.example.skydeityslash.event.BladeDropHandler;
 import com.example.skydeityslash.dimension.MandaravaDimension;
 import com.example.skydeityslash.particle.VanillaEffectSpawner;
@@ -113,8 +115,12 @@ public class SkydeitySlash {
         modEventBus.addListener(GameEvents::onRegisterAttributes);
         if (FMLEnvironment.dist.isClient()) {
             modEventBus.addListener(ModClientEvents::onRegisterRenderers);
+            modEventBus.addListener(BladeChargeDecorator::register);
             MinecraftForge.EVENT_BUS.addListener(GameEvents::onItemTooltip);
             MinecraftForge.EVENT_BUS.addListener(ModClientEvents::onClientLogout);
+            MinecraftForge.EVENT_BUS.addListener(ModClientEvents::onRenderPlayerPost);
+            // 按 Shift 切换充能条显示
+            MinecraftForge.EVENT_BUS.addListener(ModClientEvents::onKeyInput);
         }
         MinecraftForge.EVENT_BUS.addListener(GameEvents::onBladeHit);
         MinecraftForge.EVENT_BUS.addListener(GameEvents::onPhantomSwordColor);
@@ -133,6 +139,10 @@ public class SkydeitySlash {
         MinecraftForge.EVENT_BUS.addListener(BladeDropHandler::onItemToss);
         MinecraftForge.EVENT_BUS.addListener(BladeDropHandler::onItemEntityJoin);
         MinecraftForge.EVENT_BUS.addListener(BladeDropHandler::onInteractNpc);
+        // 充能：右键 +1 与三种清零时机（丢下 / 放入容器 / 换过主人）
+        MinecraftForge.EVENT_BUS.addListener(BladeChargeHandler::onRightClickItem);
+        MinecraftForge.EVENT_BUS.addListener(BladeChargeHandler::onItemToss);
+        MinecraftForge.EVENT_BUS.addListener(BladeChargeHandler::onContainerClose);
         MinecraftForge.EVENT_BUS.addListener(MandaravaDimension::onServerAboutToStart);
         MinecraftForge.EVENT_BUS.addListener(MandaravaDimension::onEntityJoin);
         MinecraftForge.EVENT_BUS.addListener(MandaravaDimension::onLevelLoad);
@@ -2361,7 +2371,17 @@ public class SkydeitySlash {
                                     .then(net.minecraft.commands.Commands.literal("ink_fox")
                                             .executes(ctx -> spawnEffect(ctx.getSource(), "ink_fox")))
                                     .then(net.minecraft.commands.Commands.literal("tianxing")
-                                            .executes(ctx -> spawnEffect(ctx.getSource(), "tianxing"))))
+                                            .executes(ctx -> spawnEffect(ctx.getSource(), "tianxing")))
+                                    .then(net.minecraft.commands.Commands.literal("newmoonrule")
+                                            .executes(ctx -> spawnEffect(ctx.getSource(), "newmoonrule")))
+                                    .then(net.minecraft.commands.Commands.literal("chikuiflower")
+                                            .executes(ctx -> spawnEffect(ctx.getSource(), "chikuiflower")))
+                                    .then(net.minecraft.commands.Commands.literal("iroibeam")
+                                            .executes(ctx -> spawnEffect(ctx.getSource(), "iroibeam")))
+                                    .then(net.minecraft.commands.Commands.literal("iroiorb")
+                                            .executes(ctx -> spawnEffect(ctx.getSource(), "iroiorb")))
+                                    .then(net.minecraft.commands.Commands.literal("overrank")
+                                            .executes(ctx -> spawnEffect(ctx.getSource(), "overrank"))))
                             .then(net.minecraft.commands.Commands.literal("preview")
                                     .then(net.minecraft.commands.Commands.literal("naru")
                                             .then(net.minecraft.commands.Commands.argument("stage",
@@ -2391,6 +2411,26 @@ public class SkydeitySlash {
                 // 幽灵蝶：在身前空中撒 5 只（一对左右对称 + 一只缓慢自转 + 两只随机散布）
                 com.example.skydeityslash.entity.EntityGhostButterfly.spawnCluster(
                         level, center.add(0, 0.6, 0), player.getLookAngle());
+            } else if ("newmoonrule".equals(kind)) {
+                // NewMoonRule：脚下地面平铺 10×10 天蓝徽记（与 columbina SA 里同一处调用）
+                com.example.skydeityslash.entity.EntityNewMoonRule.spawn(
+                        level, player.position(), player.getYRot());
+            } else if ("chikuiflower".equals(kind)) {
+                // 绽花：身前 7 格、脚底上方 2 格绽开那朵程序化花（zankou SA 形态②的视觉，位置与 SA 共用一处）
+                com.example.skydeityslash.entity.EntityChikuiFlower.spawn(
+                        level, com.example.skydeityslash.ability.ChikuiFentian.flowerCenter(player));
+            } else if ("overrank".equals(kind)) {
+                // 超位法术：脚下展开直径 16 格的巨型法阵，随后升起光柱 / 天光 / 升腾符文（纯视觉，无伤害）
+                com.example.skydeityslash.entity.EntityOverrankMagic.spawn(
+                        level, player.position(), player.getYRot());
+            } else if ("iroibeam".equals(kind)) {
+                // 向阳第二形态：从瞄点上方陡角（约 68°）砸下的一道光束（伤害由 SA 那边结算，这里只看特效）
+                // 方位取"玩家这一侧"：光束从施法者这一边的斜上方打向落点
+                com.example.skydeityslash.entity.EntityIroiBeam.spawn(
+                        level, center.add(0.0, 1.0, 0.0), player.getYRot() + 180F);
+            } else if ("iroiorb".equals(kind)) {
+                // 向阳第二形态收尾的紫色光球群：身前 6 格的地面上飘起 8 个球，边漂边散，2 秒后消散
+                com.example.skydeityslash.entity.EntityIroiOrb.spawn(level, center, 2.0F);
             }
             return 1;
         }

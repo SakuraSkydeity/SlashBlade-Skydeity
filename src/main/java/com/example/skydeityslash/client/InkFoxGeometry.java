@@ -82,7 +82,7 @@ public final class InkFoxGeometry {
         }
     }
 
-    /** 新增·地面阵图：山水绿主断环 + 深墨细分环 + 翠玉旋转径环，中央月白细亮芯（原剑体始觉 groundRings 形态，山水配色） */
+    /** 新增·地面阵图：山水绿主断环 + 深墨细分环 + 翠玉旋转径环，中央月白细亮芯（山水配色） */
     private static void groundField(Matrix4f m, VertexConsumer vc, float age) {
         float open = smoother(stage(age, 4, 6)), fade = 1 - smoother(stage(age, 44, 14)), a = open * fade;
         if (a <= .01F) return;
@@ -94,7 +94,7 @@ public final class InkFoxGeometry {
         ring(m, vc, .10F, 1.35F + open * 4.0F, .005F + open * .010F, MOON_R, MOON_G, MOON_B, a * .20F);
     }
 
-    /** 新增·牢笼：8 根竖直光柱 + 顶底环，山水绿外 / 月白细芯（原鸣雷神 cage 形态） */
+    /** 新增·牢笼：8 根竖直光柱 + 顶底环，山水绿外 / 月白细芯 */
     private static void inkCage(Matrix4f m, VertexConsumer vc, float age) {
         float open = smoother(stage(age, 5, 5)), fade = 1 - smoother(stage(age, 44, 12)), a = open * fade;
         if (a <= .01F) return;
@@ -110,7 +110,7 @@ public final class InkFoxGeometry {
         ring(m, vc, .05F, R + .05F, .014F, DARK_R, DARK_G, DARK_B, a * .18F);
     }
 
-    /** 新增·点缀：环绕场地四周漂浮的短翠玉/月白小光点（原鸣雷神 accents 形态） */
+    /** 新增·点缀：环绕场地四周漂浮的短翠玉/月白小光点 */
     private static void accents(Matrix4f m, VertexConsumer vc, float age) {
         float appear = smoother(stage(age, 4, 6)), fade = 1 - smoother(stage(age, 44, 14)), a = appear * fade;
         if (a <= .01F) return;

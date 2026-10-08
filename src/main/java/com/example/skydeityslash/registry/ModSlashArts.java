@@ -219,8 +219,11 @@ public class ModSlashArts {
     };
 
     /**
-     * 「赤葵」焚天烬灭舞：zankou 专属 SA，释放后进入 chikui_combo 连击状态，
-     * 特效 = 斩击真伤 + 暗红摆线（顶端立着密集火焰）+ 6 把幻影剑（`ability/ChikuiFentian`），
+     * 「赤葵」焚天烬灭舞：zankou 专属 SA，释放后进入 chikui_combo 连击状态。
+     * ★ **两种形态交替**（同一次 SA 键，每放一次换一种）：
+     *   ① 焚天烬灭舞 = 斩击真伤 + 暗红摆线（顶端立着密集火焰）+ 6 把幻影剑 + 地面樱花；
+     *   ② 绽花 = 只有一朵程序化花朵（`EntityChikuiFlower`），暂无伤害与其他效果。
+     * 实现见 `ability/ChikuiFentian`（含 `takeFlowerTurn` 的翻转开关）。
      * 名字为渐变：「赤葵」#E40C4D 系 / 焚天烬灭舞 #710404 系。
      */
     public static final RegistryObject<SlashArts> CHIKUI_SA =

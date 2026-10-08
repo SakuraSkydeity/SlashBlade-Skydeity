@@ -19,6 +19,9 @@ import org.joml.Matrix4f;
 /**
  * 全息剑渲染器：把 sword.png 以「竖直公告板」方式贴在一个四边形上，
  * 始终绕 Y 轴朝向摄像机（剑身保持竖直），全亮渲染（贴图自发光感），前后淡入淡出。
+ *
+ * <p>★ 2026-09-28：落地后额外画一组**四周丝线汇聚**（{@link FontaineThreadGeometry}，
+ * 走 {@link GlowGeometry#GLOW} 加法缓冲）—— 每条丝起点不同、终点都是剑根、各带一道弧。
  */
 public class RenderSwordHologram extends EntityRenderer<EntitySwordHologram> {
 
@@ -68,6 +71,13 @@ public class RenderSwordHologram extends EntityRenderer<EntitySwordHologram> {
         float bob = entity.isLanded() ? 0.05f * Mth.sin(age * 0.10f) : 0.0f;
 
         pose.pushPose();
+        // ① 落地后的「四周丝线汇聚」：**Java 画的几何**（不是粒子）—— 每条起点不同、终点都是剑根、各带一道弧。
+        //    画在"剑的公告板旋转"之前 ⇒ 丝线是世界朝向的，不会跟着相机转。
+        if (entity.isLanded()) {
+            float p = Mth.clamp((age - EntitySwordHologram.FALL_TICKS) / (float) EntitySwordHologram.LINGER_TICKS, 0F, 1F);
+            FontaineThreadGeometry.draw(pose.last().pose(), buffer.getBuffer(GlowGeometry.GLOW), p, alpha);
+        }
+        // ② 剑本身（绕 Y 轴朝向相机的公告板）
         pose.mulPose(Axis.YP.rotationDegrees(yawToCam));
         VertexConsumer vc = buffer.getBuffer(RENDER_TYPE);
         Matrix4f mat = pose.last().pose();

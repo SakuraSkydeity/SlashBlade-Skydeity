@@ -22,7 +22,7 @@
   ],
   "render": {
     "carry_type": "default",
-    "model": "skydeityslash:model/named/orig.obj",
-    "texture": "skydeityslash:model/named/genshin.png"
+    "model": "skydeityslash:model/named/a_orig.obj",
+    "texture": "skydeityslash:model/named/a_genshin.png"
   }
 }

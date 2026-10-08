@@ -6,7 +6,7 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
 /**
- * 鸣雷神 几何层 忠实移植（来自 1.20KaBlade NarukamiGeometry）。
+ * 鸣雷神 几何层。
  * 原生管线、无贴图：相机感知 ribbon / 圆盘 / 星爆 / 确定性闪电，int 0xRRGGBB 取色 + alpha。
  */
 final class NarukamiGeometry21 {

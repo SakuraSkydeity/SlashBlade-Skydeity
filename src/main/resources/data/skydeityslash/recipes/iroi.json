@@ -6,7 +6,7 @@
       "type": "slashblade:blade",
       "item": "slashblade:slashblade",
       "request": {
-        "name": "skydeityslash:genshin",
+        "name": "skydeityslash:nevertoever",
         "refine": 52,
         "proud_soul": 5200,
         "kill": 5200
@@ -24,7 +24,7 @@
       "item": "skydeityslash:imagine_ignot"
     },
     {
-      "item": "slashblade:proudsoul_trapezohedron"
+      "item": "skydeityslash:moon_template"
     },
     {
       "item": "skydeityslash:imagine_ignot"
@@ -41,7 +41,7 @@
       "item": "skydeityslash:imagine_ignot"
     },
     {
-      "item": "slashblade:proudsoul_trapezohedron"
+      "item": "skydeityslash:moon_template"
     }
   ],
   "output": {

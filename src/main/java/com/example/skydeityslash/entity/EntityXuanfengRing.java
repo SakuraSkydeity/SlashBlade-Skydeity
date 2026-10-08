@@ -15,11 +15,15 @@ import net.minecraft.world.phys.Vec3;
 /**
  * 「翾风回雪」白色圆环视觉实体 —— 环绕锁定目标/落点生成。
  * 服务端仅负责存活计时（纯视觉、无伤害碰撞）；
- * 客户端由 RenderXuanfengRing 用 OdetteRingGeometry 绘制白色三段轨道弧环 + 旋转 ribbon 环
- * （移植自鸣雷神 RING_BACK 轨道弧环 + groundField 旋转环，改为纯白）。
+ * 客户端由 RenderXuanfengRing 用 OdetteRingGeometry 绘制白色三段轨道弧环 + 旋转 ribbon 环。
  */
 public class EntityXuanfengRing extends Entity {
-    public static final int LIFETIME = 64;
+    /**
+     * 存在时长（tick）—— ★ 2026-09-28 64 → **44**：按要求"消散快一点"。
+     * 圆环本体在 28 tick 内就淡完了，竖弧最后一条（27 起、7 tick 展开、+1.5 后 5 tick 收）到 40.5 收干净，
+     * 所以 44 已经够，剩下的都是"什么都不画"的空转时间。
+     */
+    public static final int LIFETIME = 44;
 
     private static final EntityDataAccessor<Float> DIR_X = SynchedEntityData.defineId(
             EntityXuanfengRing.class, EntityDataSerializers.FLOAT);

@@ -72,7 +72,7 @@ public class XuanfengSlashArt {
             spawnSkySwords(player, level, state, aim);   // 第 1 轮
             serverLevel.getServer().tell(new TickTask(serverLevel.getServer().getTickCount() + 10,
                     () -> spawnSkySwords(player, level, state, aim)));  // 第 2 轮（略延时错开）
-            // 白色动态圆环：环绕锁定目标/落点，纯视觉（移植自鸣雷神 RING_BACK 轨道弧环 + 旋转 ribbon 环，改纯白）
+            // 白色动态圆环：环绕锁定目标/落点，纯视觉（三段轨道弧环 + 旋转 ribbon 环，纯白）
             EntityXuanfengRing.spawn(level, aim.add(0, 0.6, 0), player.getLookAngle());
         }
     }

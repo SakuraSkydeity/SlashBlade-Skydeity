@@ -83,6 +83,13 @@ def main():
     # edge：按 alpha 分 NB 个**等宽**档（1..254 均分）。等宽带保证 alpha 误差 <= 半个带宽，
     # 且每档颜色数按该档像素数**按比例**分配（多的多给），最少 2 色。
     bounds = np.unique(np.linspace(1, 255, NB + 1).round().astype(int))
+    # ★ KE 太小时必须**减档**：每档至少 2 色，档数*2 不能超过 KE，
+    #   否则 alloc 总和 > KE、调色板装不下（core 250 + edge 5 时崩过：16 色塞进 5 个位置）。
+    nb_eff = max(1, min(NB, KE // 2))
+    if nb_eff < NB:
+        print("  ⚠ edge 色数 %d 不足以给 %d 档每档 2 色 → 档数降为 %d（想保留全部档位请加大 edge 色数）"
+              % (KE, NB, nb_eff))
+        bounds = np.unique(np.linspace(1, 255, nb_eff + 1).round().astype(int))
     cand = []
     for bi in range(len(bounds) - 1):
         lo, hi = int(bounds[bi]), int(bounds[bi + 1])
@@ -93,7 +100,7 @@ def main():
     # 按像素数比例分配色数（最少 2，且总和 <= KE）
     tot_px = sum(c[0].sum() for c in cand) or 1
     alloc = [max(2, int(round(KE * c[0].sum() / tot_px))) for c in cand]
-    while sum(alloc) > KE and max(alloc) > 2:
+    while sum(alloc) > KE and max(alloc) > 1:
         alloc[int(np.argmax(alloc))] -= 1
     bands, pal_edge_parts = [], []
     for (m, lo, hi, mid), k in zip(cand, alloc):
@@ -102,9 +109,20 @@ def main():
         pal_edge_parts.append(build_palette(rgb[m], k, rounds=min(1, NLLOYD)))
     pal_edge = np.vstack(pal_edge_parts) if pal_edge_parts else np.zeros((0, 3), np.uint8)
     ke = len(pal_edge)
+    if KC + ke + 1 > 256:                                  # 兜底：调色板只有 256 项
+        raise SystemExit("调色板溢出：core %d + edge %d + 透明 1 = %d 项 > 256；"
+                         "请减小 core 色数或 edge 色数" % (KC, ke, KC + ke + 1))
     print("  edge 分 %d 个等宽档（带宽 %d），像素数/色数 %s"
           % (len(bands), (255 - 1) // max(1, len(bands)),
              [(int(b[0].sum()), b[2]) for b in bands]))
+    # ★ 羽化边若几乎全挤在某一档（如"接近不透明"），该档色数会不够、色差明显。
+    #   这时把 core 匀一些色位给 edge（core 误差通常远低于 edge，让色位更划算）。
+    if bands:
+        top = max(b[0].sum() for b in bands)
+        if top / max(1, sum(b[0].sum() for b in bands)) > 0.5:
+            print("  ⚠ 最高档占 %.0f%% 的半透明像素却只有 %d 色；建议减小 core 色数、增大 edge 色数"
+                  % (top / sum(b[0].sum() for b in bands) * 100,
+                     max(b[2] for b in bands)))
 
     # 透明区 RGB 用邻近可见色填充（防 mipmap/过滤时吸黑）
     small = im.resize((max(1, W // FAR_BLUR), max(1, H // FAR_BLUR)), Image.BILINEAR)
